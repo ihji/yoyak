@@ -1,6 +1,5 @@
 package net.pushpop.yoyak.domain
 
-import droidblaze.chorus.analysis.domain.{AbsDomLike, FunDom}
 import util.parsing.combinator.RegexParsers
 
 /**
@@ -80,7 +79,7 @@ case object Bot extends Bool {
 
 sealed abstract class PAssignDom extends AbsDomLike[PAssignDom]
 
-case class PAssign(map: FunDom[Int,Bool]) extends PAssignDom {
+case class PAssign(map: MapDom[Int,Bool]) extends PAssignDom {
   def isTop = false
 
   def get(v: Int) : Bool =
@@ -91,7 +90,7 @@ case class PAssign(map: FunDom[Int,Bool]) extends PAssignDom {
     copy(map = newMap)
   }
 
-  def size = map.map.size
+  def size = map.t.size
 
   def <<=(other: PAssignDom) =
     other match {
@@ -104,19 +103,19 @@ case class PAssign(map: FunDom[Int,Bool]) extends PAssignDom {
       case _ : PAssignTop => other
       case PAssign(otherMap) =>
         val newMap = map.++(otherMap)
-        if(newMap.map.exists{!_.isInstanceOf[ConcreteBool]})
+        if(newMap.t.exists{!_.isInstanceOf[ConcreteBool]})
           PAssignTop(copy(map = newMap))
         else copy(map = newMap)
     }
 }
 
 object PAssign {
-  val empty = PAssign(FunDom(Map.empty))
+  val empty = PAssign(MapDom(Map.empty))
   class Parser extends RegexParsers {
     def bool : Parser[Bool] =
       "0" ^^ {_ => F} | "1" ^^ {_ => T}
     def assign : Parser[PAssign] =
-      rep1(bool) ^^ {l => PAssign(FunDom((1 to l.length).zip(l).toMap))}
+      rep1(bool) ^^ {l => PAssign(MapDom((1 to l.length).zip(l).toMap))}
   }
   implicit def str2PAssign(str: String) : PAssign = {
     val parser = new Parser

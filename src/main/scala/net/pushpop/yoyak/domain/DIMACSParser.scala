@@ -1,7 +1,7 @@
 package net.pushpop.yoyak.domain
 
 import util.parsing.combinator.RegexParsers
-import droidblaze.chorus.Utils
+import net.pushpop.yoyak.util.Log
 
 /**
  * Created with IntelliJ IDEA.
@@ -15,8 +15,8 @@ trait DIMACSParser extends RegexParsers {
   def cnf : Parser[Option[CNF]] =
     rep(comment)~>definition~rep1(clause) ^^ {
       case (nbv,nbc)~cs =>
-        if(cs.length != nbc) {Utils.error("the number of clauses is wrong"); None}
-        else if(cs.exists{_.exists{x => x > nbv || x < -nbv}}) {Utils.error("var should be in [-%s,%s]".format(nbv,nbv)); None}
+        if(cs.length != nbc) {Log.error("the number of clauses is wrong"); None}
+        else if(cs.exists{_.exists{x => x > nbv || x < -nbv}}) {Log.error("var should be in [-%s,%s]".format(nbv,nbv)); None}
         else Some(CNF(nbv,nbc,cs.map{Clause(_)}))
     }
 

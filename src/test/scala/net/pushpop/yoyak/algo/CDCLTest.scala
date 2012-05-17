@@ -14,8 +14,8 @@ import net.pushpop.yoyak.domain.{CNF, PAssign}
 
 class CDCLTest extends FunSuite with ShouldMatchers {
   test("simple CDCL") {
-    import absolver.domain.CNFConversions._
-    import absolver.domain.PAssign.str2PAssign
+    import net.pushpop.yoyak.domain.CNFConversions._
+    import net.pushpop.yoyak.domain.PAssign.str2PAssign
     val solution : PAssign = "110"
     val cnf : CNF =
       """p cnf 3 4
@@ -29,7 +29,7 @@ class CDCLTest extends FunSuite with ShouldMatchers {
     cnf$.get should be (solution)
   }
   test("unsat CDCL") {
-    import absolver.domain.CNFConversions._
+    import net.pushpop.yoyak.domain.CNFConversions._
     val cnf : CNF =
       """p cnf 3 4
         |1 0

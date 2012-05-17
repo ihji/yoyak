@@ -15,7 +15,7 @@ import annotation.tailrec
 class QCP(cnf: CNF) {
   val bcp = new BCP(cnf)
   def pick(p: PAssign) : Int = {
-    ((1 to cnf.nbVars).toSet -- p.map.map.keySet).head
+    ((1 to cnf.nbVars).toSet -- p.map.t.keySet).head
   }
   def split(l: List[PAssign]) : List[PAssign] = {
     l.foldLeft(List.empty[PAssign],true) {

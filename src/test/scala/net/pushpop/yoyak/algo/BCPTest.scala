@@ -2,8 +2,7 @@ package net.pushpop.yoyak.algo
 
 import org.scalatest.FunSuite
 import org.scalatest.matchers.ShouldMatchers
-import droidblaze.chorus.analysis.domain.FunDom
-import net.pushpop.yoyak.domain.{T, PAssign, CNF}
+import net.pushpop.yoyak.domain._
 
 /**
  * Created with IntelliJ IDEA.
@@ -15,7 +14,7 @@ import net.pushpop.yoyak.domain.{T, PAssign, CNF}
 
 class BCPTest extends FunSuite with ShouldMatchers {
   test("simple BCP") {
-    import absolver.domain.CNFConversions._
+    import net.pushpop.yoyak.domain.CNFConversions._
     val cnf : CNF =
       """p cnf 3 3
         |1 0
@@ -24,6 +23,6 @@ class BCPTest extends FunSuite with ShouldMatchers {
       """.stripMargin
     val bcp = new BCP(cnf)
     val cnf$ = bcp.run(PAssign.empty)
-    cnf$ should be (PAssign(FunDom(Map(1 -> T, 3 -> T))))
+    cnf$ should be (PAssign(MapDom(Map(1 -> T, 3 -> T))))
   }
 }
