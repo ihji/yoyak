@@ -1,4 +1,4 @@
-package net.pushpop.yoyak.util
+package com.simplytyped.yoyak.util
 
 object Log {
   def error(msg: => String) {

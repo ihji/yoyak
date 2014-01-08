@@ -1,4 +1,4 @@
-package net.pushpop.yoyak.domain
+package com.simplytyped.yoyak.domain
 
 import org.scalatest.FunSuite
 import org.scalatest.matchers.ShouldMatchers

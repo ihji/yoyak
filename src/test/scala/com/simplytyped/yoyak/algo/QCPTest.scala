@@ -1,8 +1,8 @@
-package net.pushpop.yoyak.algo
+package com.simplytyped.yoyak.algo
 
 import org.scalatest.FunSuite
 import org.scalatest.matchers.ShouldMatchers
-import net.pushpop.yoyak.domain.{PAssign, CNF}
+import com.simplytyped.yoyak.domain.{PAssign, CNF}
 
 /**
  * Created with IntelliJ IDEA.
@@ -14,8 +14,8 @@ import net.pushpop.yoyak.domain.{PAssign, CNF}
 
 class QCPTest extends FunSuite with ShouldMatchers {
   test("simple QCP") {
-    import net.pushpop.yoyak.domain.CNFConversions._
-    import net.pushpop.yoyak.domain.PAssign.str2PAssign
+    import com.simplytyped.yoyak.domain.CNFConversions._
+    import com.simplytyped.yoyak.domain.PAssign.str2PAssign
     val solution : PAssign = "110"
     val cnf : CNF =
       """p cnf 3 4
@@ -29,8 +29,8 @@ class QCPTest extends FunSuite with ShouldMatchers {
     cnf$.get should be (solution)
   }
   test("yet another simple QCP") {
-    import net.pushpop.yoyak.domain.CNFConversions._
-    import net.pushpop.yoyak.domain.PAssign.str2PAssign
+    import com.simplytyped.yoyak.domain.CNFConversions._
+    import com.simplytyped.yoyak.domain.PAssign.str2PAssign
     val solution : PAssign = "00101111011101001101111111001011100011111111110000"
     val cnf : CNF =
       """c instance by G3 (http://www.is.titech.ac.jp/~watanabe/gensat/a1/index.html)

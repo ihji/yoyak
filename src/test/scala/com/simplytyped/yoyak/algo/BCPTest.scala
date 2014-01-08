@@ -1,8 +1,8 @@
-package net.pushpop.yoyak.algo
+package com.simplytyped.yoyak.algo
 
 import org.scalatest.FunSuite
 import org.scalatest.matchers.ShouldMatchers
-import net.pushpop.yoyak.domain._
+import com.simplytyped.yoyak.domain._
 
 /**
  * Created with IntelliJ IDEA.
@@ -14,7 +14,7 @@ import net.pushpop.yoyak.domain._
 
 class BCPTest extends FunSuite with ShouldMatchers {
   test("simple BCP") {
-    import net.pushpop.yoyak.domain.CNFConversions._
+    import com.simplytyped.yoyak.domain.CNFConversions._
     val cnf : CNF =
       """p cnf 3 3
         |1 0

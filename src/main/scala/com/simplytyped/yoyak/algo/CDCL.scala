@@ -1,6 +1,6 @@
-package net.pushpop.yoyak.algo
+package com.simplytyped.yoyak.algo
 
-import net.pushpop.yoyak.domain._
+import com.simplytyped.yoyak.domain._
 import annotation.tailrec
 
 

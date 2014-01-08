@@ -1,7 +1,7 @@
-package net.pushpop.yoyak.domain
+package com.simplytyped.yoyak.domain
 
 import util.parsing.combinator.RegexParsers
-import net.pushpop.yoyak.util.Log
+import com.simplytyped.yoyak.util.Log
 
 /**
  * Created with IntelliJ IDEA.

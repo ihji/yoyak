@@ -1,4 +1,4 @@
-package net.pushpop.yoyak.domain
+package com.simplytyped.yoyak.domain
 
 trait AbsDomLike[D <: AbsDomLike[D]] {
   def isTop : Boolean
