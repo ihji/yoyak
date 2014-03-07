@@ -1,6 +1,7 @@
 package com.simplytyped.yoyak.domain
 
 import util.parsing.combinator.RegexParsers
+import scala.language.implicitConversions
 
 /**
  * Created with IntelliJ IDEA.
@@ -103,7 +104,7 @@ case class PAssign(map: MapDom[Int,Bool]) extends PAssignDom {
       case _ : PAssignTop => other
       case PAssign(otherMap) =>
         val newMap = map.++(otherMap)
-        if(newMap.t.exists{!_.isInstanceOf[ConcreteBool]})
+        if(newMap.t.exists{!_._2.isInstanceOf[ConcreteBool]})
           PAssignTop(copy(map = newMap))
         else copy(map = newMap)
     }

@@ -1,7 +1,7 @@
 package com.simplytyped.yoyak.algo
 
 import org.scalatest.FunSuite
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.Matchers
 import com.simplytyped.yoyak.domain.{CNF, PAssign}
 
 /**
@@ -12,7 +12,7 @@ import com.simplytyped.yoyak.domain.{CNF, PAssign}
  * To change this template use File | Settings | File Templates.
  */
 
-class CDCLTest extends FunSuite with ShouldMatchers {
+class CDCLTest extends FunSuite with Matchers {
   test("simple CDCL") {
     import com.simplytyped.yoyak.domain.CNFConversions._
     import com.simplytyped.yoyak.domain.PAssign.str2PAssign

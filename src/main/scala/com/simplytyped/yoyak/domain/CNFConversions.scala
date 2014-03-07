@@ -1,5 +1,7 @@
 package com.simplytyped.yoyak.domain
 
+import scala.language.implicitConversions
+
 /**
  * Created with IntelliJ IDEA.
  * User: ihji

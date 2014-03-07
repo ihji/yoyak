@@ -1,7 +1,7 @@
 package com.simplytyped.yoyak.domain
 
 import org.scalatest.FunSuite
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.Matchers
 
 /**
  * Created with IntelliJ IDEA.
@@ -11,7 +11,7 @@ import org.scalatest.matchers.ShouldMatchers
  * To change this template use File | Settings | File Templates.
  */
 
-class DIMACSParserTest extends FunSuite with ShouldMatchers {
+class DIMACSParserTest extends FunSuite with Matchers {
   test("basic DIMACS parsing") {
     val parser = new DIMACSParser {}
     val file =

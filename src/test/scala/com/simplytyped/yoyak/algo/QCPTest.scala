@@ -1,7 +1,7 @@
 package com.simplytyped.yoyak.algo
 
 import org.scalatest.FunSuite
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.Matchers
 import com.simplytyped.yoyak.domain.{PAssign, CNF}
 
 /**
@@ -12,7 +12,7 @@ import com.simplytyped.yoyak.domain.{PAssign, CNF}
  * To change this template use File | Settings | File Templates.
  */
 
-class QCPTest extends FunSuite with ShouldMatchers {
+class QCPTest extends FunSuite with Matchers {
   test("simple QCP") {
     import com.simplytyped.yoyak.domain.CNFConversions._
     import com.simplytyped.yoyak.domain.PAssign.str2PAssign

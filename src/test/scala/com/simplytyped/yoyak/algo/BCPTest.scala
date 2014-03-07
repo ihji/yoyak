@@ -1,7 +1,7 @@
 package com.simplytyped.yoyak.algo
 
 import org.scalatest.FunSuite
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.Matchers
 import com.simplytyped.yoyak.domain._
 
 /**
@@ -12,7 +12,7 @@ import com.simplytyped.yoyak.domain._
  * To change this template use File | Settings | File Templates.
  */
 
-class BCPTest extends FunSuite with ShouldMatchers {
+class BCPTest extends FunSuite with Matchers {
   test("simple BCP") {
     import com.simplytyped.yoyak.domain.CNFConversions._
     val cnf : CNF =
