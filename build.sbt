@@ -2,7 +2,9 @@ name := "yoyak"
 
 version := "0.1-SNAPSHOT"
 
-scalaVersion := "2.10.3"
+scalaVersion := "2.11.0-RC1"
+
+libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.0"
 
 libraryDependencies += "org.scalatest" %% "scalatest" % "2.1.0" % "test"
 
