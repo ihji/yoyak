@@ -8,6 +8,8 @@ libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % 
 
 libraryDependencies += "org.scalatest" %% "scalatest" % "2.1.0" % "test"
 
+libraryDependencies += "org.scalacheck" %% "scalacheck" % "1.11.3" % "test"
+
 libraryDependencies += "org.apache.logging.log4j" % "log4j-api" % "2.0-rc1"
 
 libraryDependencies += "org.apache.logging.log4j" % "log4j-core" % "2.0-rc1"
