@@ -7,8 +7,14 @@ trait GraphLike[Node <: NodeLike, Edge <: EdgeLike[Node], Graph <: GraphLike[Nod
   val edges : Set[Edge]
   val nodes : Set[Node]
 
+  val nexts : Map[Node,Set[Edge]]
+  val prevs : Map[Node,Set[Edge]]
+
   def addEdge(from: Node, to: Node) : Graph
   def addEdge(e: Edge) : Graph
+  def removeEdge(from: Node, to: Node) : Graph
+  def removeEdge(e: Edge) : Graph
+  def removeNode(n: Node) : Graph
   def addNode(n: Node) : Graph
   def newEdge(from: Node, to: Node) : Edge
   def getNexts(n: Node) : Set[Node]

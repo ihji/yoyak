@@ -9,16 +9,20 @@ import org.scalacheck.Arbitrary.arbitrary
 object GraphGenerator {
   case class IntNode(data: Int) extends NodeLike { type D = Int }
   case class IntEdge(from: IntNode, to: IntNode) extends EdgeLike[IntNode] { type L = Option[Nothing]; val label = None }
-  class IntegerImmutableGraph(val nodes: Set[IntNode], val edges: Set[IntEdge], val nexts: Map[IntNode,Set[IntEdge]], val prevs: Map[IntNode,Set[IntEdge]]) extends ImmutableGraphLike[IntNode,IntEdge,IntegerImmutableGraph] {
+  case class IntegerImmutableGraph(nodes: Set[IntNode], edges: Set[IntEdge], nexts: Map[IntNode,Set[IntEdge]], prevs: Map[IntNode,Set[IntEdge]]) extends ImmutableGraphLike[IntNode,IntEdge,IntegerImmutableGraph] {
 
     def newEdge(from: IntNode, to: IntNode): IntEdge = IntEdge(from,to)
 
     def builder(nodes: Set[IntNode], edges: Set[IntEdge], nexts: Map[IntNode, Set[IntEdge]], prevs: Map[IntNode, Set[IntEdge]]): IntegerImmutableGraph = {
-      new IntegerImmutableGraph(nodes,edges,nexts,prevs)
+      IntegerImmutableGraph(nodes,edges,nexts,prevs)
     }
   }
   object IntegerImmutableGraph {
-    val empty = new IntegerImmutableGraph(Set.empty,Set.empty,Map.empty,Map.empty)
+    val empty = IntegerImmutableGraph(Set.empty,Set.empty,Map.empty,Map.empty)
+    implicit def str2graph(s: String) : IntegerImmutableGraph = {
+      val parser = new IntegerGraphParser
+      parser.parseAll(parser.graph,s).get
+    }
   }
 
   val singleGraphGen : Gen[IntegerImmutableGraph] = for {

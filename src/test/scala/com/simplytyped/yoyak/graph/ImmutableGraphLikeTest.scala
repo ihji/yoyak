@@ -1,44 +1,25 @@
 package com.simplytyped.yoyak.graph
 
-import org.scalatest.{FunSuite, Matchers}
-import org.scalatest.prop.Checkers
-import org.scalacheck.Prop._
-import com.simplytyped.yoyak.graph.GraphGenerator.{IntEdge, IntNode, IntegerImmutableGraph}
+import org.scalatest.{Matchers, FunSuite}
+import com.simplytyped.yoyak.graph.GraphGenerator.IntegerImmutableGraph
 
 /**
- * Graph build test
+ * Created by ihji on 3/24/14.
  */
-class ImmutableGraphLikeTest extends FunSuite with Matchers with Checkers {
-  test("add one edge") {
-    check {
-      forAll(GraphGenerator.graphGen) {
-        (g: IntegerImmutableGraph) =>
-          val edge = IntEdge(IntNode(101), IntNode(102))
-          g.nodes.size == (g.addEdge(edge).nodes.size - 2)
-      }
-    }
-    check {
-      forAll(GraphGenerator.graphGen) {
-        (g: IntegerImmutableGraph) =>
-          val edge = IntEdge(IntNode(101), IntNode(102))
-          g.edges.size == (g.addEdge(edge).edges.size - 1)
-      }
-    }
-  }
-  test("should ignore addition of a duplicated edge") {
-    check {
-      forAll(GraphGenerator.graphGen) {
-        (g: IntegerImmutableGraph) =>
-          val duplicatedEdge = g.edges.head
-          g.nodes.size == g.addEdge(duplicatedEdge).nodes.size
-      }
-    }
-    check {
-      forAll(GraphGenerator.graphGen) {
-        (g: IntegerImmutableGraph) =>
-          val duplicatedEdge = g.edges.head
-          g.edges.size == g.addEdge(duplicatedEdge).edges.size
-      }
-    }
+class ImmutableGraphLikeTest extends FunSuite with Matchers {
+  test("basic graph construction") {
+    val graph : IntegerImmutableGraph =
+      """digraph yoyak {
+        |  1;
+        |  2;
+        |  3;
+        |  1 -> 2;
+        |  2 -> 3;
+        |  3 -> 1;
+        |}
+      """.stripMargin
+
+    graph.nodes.size should be (3)
+    graph.edges.size should be (3)
   }
 }

@@ -4,16 +4,9 @@ package com.simplytyped.yoyak.graph
  * trait for immutable graphs
  */
 trait ImmutableGraphLike[Node <: NodeLike, Edge <: EdgeLike[Node], Graph <: GraphLike[Node,Edge,Graph]] extends GraphLike[Node,Edge,Graph] { self: Graph =>
-  protected val nexts : Map[Node,Set[Edge]]
-  protected val prevs : Map[Node,Set[Edge]]
-
   def addEdge(from: Node, to: Node) : Graph = {
-    val edge = newEdge(from, to)
-    val newNodes = nodes ++ Seq(from,to)
-    val newEdges = edges + edge
-    val newNexts = nexts + (from->(nexts.getOrElse(from,Set.empty)+edge))
-    val newPrevs = prevs + (to->(prevs.getOrElse(to,Set.empty)+edge))
-    builder(newNodes,newEdges,newNexts,newPrevs)
+    val newE = newEdge(from, to)
+    addEdge(newE)
   }
   def addEdge(e: Edge) : Graph = {
     val newNodes = nodes ++ Seq(e.from,e.to)
@@ -21,6 +14,23 @@ trait ImmutableGraphLike[Node <: NodeLike, Edge <: EdgeLike[Node], Graph <: Grap
     val newNexts = nexts + (e.from->(nexts.getOrElse(e.from,Set.empty)+e))
     val newPrevs = prevs + (e.to->(prevs.getOrElse(e.to,Set.empty)+e))
     builder(newNodes,newEdges,newNexts,newPrevs)
+  }
+  def removeEdge(from: Node, to: Node) : Graph = {
+    val newE = newEdge(from, to)
+    removeEdge(newE)
+  }
+  def removeEdge(e: Edge) : Graph = {
+    val newEdges = edges - e
+    val newNextSet = nexts(e.from) - e
+    val newNexts = if(newNextSet.isEmpty) nexts - e.from else nexts + (e.from->newNextSet)
+    val newPrevSet = prevs(e.to) - e
+    val newPrevs = if(newPrevSet.isEmpty) prevs - e.to else prevs + (e.to->newPrevSet)
+    builder(nodes,newEdges,newNexts,newPrevs)
+  }
+  def removeNode(n: Node) : Graph = {
+    val incomingEdges = prevs.getOrElse(n,Set.empty[Edge])
+    val outgoingEdges = nexts.getOrElse(n,Set.empty[Edge])
+    (incomingEdges ++ outgoingEdges).foldLeft(builder(nodes - n,edges,nexts,prevs)){_.removeEdge(_)}
   }
   def addNode(n: Node) : Graph = {
     val newNodes = nodes + n
