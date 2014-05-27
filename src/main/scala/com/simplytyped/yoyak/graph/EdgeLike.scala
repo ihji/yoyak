@@ -3,7 +3,7 @@ package com.simplytyped.yoyak.graph
 /**
  * basic edge
  */
-trait EdgeLike[Node<:NodeLike] {
+trait EdgeLike[Node<:NodeLike[Node]] {
   type L
   val label : L
   val from : Node

@@ -3,7 +3,7 @@ package com.simplytyped.yoyak.graph
 /**
  * trait for immutable graphs
  */
-trait ImmutableGraphLike[Node <: NodeLike, Edge <: EdgeLike[Node], Graph <: GraphLike[Node,Edge,Graph]] extends GraphLike[Node,Edge,Graph] { self: Graph =>
+trait ImmutableGraphLike[Node <: NodeLike[Node], Edge <: EdgeLike[Node], Graph <: GraphLike[Node,Edge,Graph]] extends GraphLike[Node,Edge,Graph] { self: Graph =>
   def addEdge(from: Node, to: Node) : Graph = {
     val newE = newEdge(from, to)
     addEdge(newE)

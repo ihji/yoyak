@@ -3,7 +3,7 @@ package com.simplytyped.yoyak.graph
 /**
  * very basic graph functionalities
  */
-trait GraphLike[Node <: NodeLike, Edge <: EdgeLike[Node], Graph <: GraphLike[Node,Edge,Graph]] { self: Graph =>
+trait GraphLike[Node <: NodeLike[Node], Edge <: EdgeLike[Node], Graph <: GraphLike[Node,Edge,Graph]] { self: Graph =>
   val edges : Set[Edge]
   val nodes : Set[Node]
 

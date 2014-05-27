@@ -1,12 +1,8 @@
-package com.simplytyped.yoyak.graph
+package com.simplytyped.yoyak.graph.algo
 
 import org.scalatest.{Matchers, FunSuite}
 import com.simplytyped.yoyak.graph.GraphGenerator.{IntEdge, IntegerImmutableGraph, IntNode}
-import com.simplytyped.yoyak.graph.algo.GraphRefactoringImpl
 
-/**
- * Created by ihji on 3/27/14.
- */
 class GraphRefactoringTest extends FunSuite with Matchers {
   test("merge singly paired nodes") {
     val graph : IntegerImmutableGraph =

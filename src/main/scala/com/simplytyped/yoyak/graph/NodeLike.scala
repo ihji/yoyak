@@ -3,7 +3,7 @@ package com.simplytyped.yoyak.graph
 /**
  * basic node (vertex)
  */
-trait NodeLike {
+trait NodeLike[Node <: NodeLike[Node]] extends Ordered[Node] {
   type D
   val data : D
   override def toString : String = {
