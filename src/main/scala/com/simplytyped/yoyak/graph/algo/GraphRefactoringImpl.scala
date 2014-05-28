@@ -2,7 +2,7 @@ package com.simplytyped.yoyak.graph.algo
 
 import com.simplytyped.yoyak.graph.{NodeLike, EdgeLike, GraphLike}
 
-class GraphRefactoringImpl[Node <: NodeLike[Node], Edge <: EdgeLike[Node], Graph <: GraphLike[Node,Edge,Graph]] extends GraphRefactoring[Graph,Node] {
+trait GraphRefactoringImpl[Node <: NodeLike[Node], Edge <: EdgeLike[Node], Graph <: GraphLike[Node,Edge,Graph]] extends GraphRefactoring[Graph,Node] {
   def mergePairedNodes(merger: (Node,Node)=>Node)(g: Graph) : Graph = {
     def findMerged(remapper: Map[Node,Node])(n: Node) : Node = {
       val resultOpt = remapper.get(n)

@@ -31,7 +31,7 @@ class GraphRefactoringTest extends FunSuite with Matchers {
         |}
       """.stripMargin
     val merger = (x: IntNode, y: IntNode) => if(x.data < y.data) x else y
-    val refactor = new GraphRefactoringImpl[IntNode,IntEdge,IntegerImmutableGraph]
+    val refactor = new GraphRefactoringImpl[IntNode,IntEdge,IntegerImmutableGraph] {}
     val refactoredGraph = refactor.mergePairedNodes(merger)(graph)
     refactoredGraph should be (resultGraph)
   }
