@@ -1,8 +1,8 @@
-package com.simplytyped.yoyak.algo
+package com.simplytyped.yoyak.solver.algo
 
 import org.scalatest.FunSuite
 import org.scalatest.Matchers
-import com.simplytyped.yoyak.domain._
+import com.simplytyped.yoyak.solver.domain._
 
 /**
  * Created with IntelliJ IDEA.
@@ -14,7 +14,7 @@ import com.simplytyped.yoyak.domain._
 
 class BCPTest extends FunSuite with Matchers {
   test("simple BCP") {
-    import com.simplytyped.yoyak.domain.CNFConversions._
+    import com.simplytyped.yoyak.solver.domain.CNFConversions._
     val cnf : CNF =
       """p cnf 3 3
         |1 0

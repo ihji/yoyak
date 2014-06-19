@@ -1,4 +1,4 @@
-package com.simplytyped.yoyak.domain
+package com.simplytyped.yoyak.solver.domain
 
 import org.scalatest.FunSuite
 import org.scalatest.Matchers

@@ -1,4 +1,4 @@
-package com.simplytyped.yoyak.domain
+package com.simplytyped.yoyak.solver.domain
 
 trait AbsDomLike[D <: AbsDomLike[D]] {
   def isTop : Boolean

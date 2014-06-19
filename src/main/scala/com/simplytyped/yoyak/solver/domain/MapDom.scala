@@ -1,4 +1,4 @@
-package com.simplytyped.yoyak.domain
+package com.simplytyped.yoyak.solver.domain
 
 case class MapDom[D1, D2 <: AbsDomLike[D2]](t : Map[D1, D2])
   extends AbsDomLike[MapDom[D1, D2]] {

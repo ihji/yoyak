@@ -1,4 +1,4 @@
-package com.simplytyped.yoyak.domain
+package com.simplytyped.yoyak.solver.domain
 
 /**
  * Created with IntelliJ IDEA.

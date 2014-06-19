@@ -1,6 +1,6 @@
-package com.simplytyped.yoyak.algo
+package com.simplytyped.yoyak.solver.algo
 
-import com.simplytyped.yoyak.domain._
+import com.simplytyped.yoyak.solver.domain._
 import annotation.tailrec
 
 

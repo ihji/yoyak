@@ -1,8 +1,8 @@
-package com.simplytyped.yoyak.algo
+package com.simplytyped.yoyak.solver.algo
 
 import org.scalatest.FunSuite
 import org.scalatest.Matchers
-import com.simplytyped.yoyak.domain.{CNF, PAssign}
+import com.simplytyped.yoyak.solver.domain.{CNF, PAssign}
 
 /**
  * Created with IntelliJ IDEA.
@@ -14,8 +14,8 @@ import com.simplytyped.yoyak.domain.{CNF, PAssign}
 
 class CDCLTest extends FunSuite with Matchers {
   test("simple CDCL") {
-    import com.simplytyped.yoyak.domain.CNFConversions._
-    import com.simplytyped.yoyak.domain.PAssign.str2PAssign
+    import com.simplytyped.yoyak.solver.domain.CNFConversions._
+    import com.simplytyped.yoyak.solver.domain.PAssign.str2PAssign
     val solution : PAssign = "110"
     val cnf : CNF =
       """p cnf 3 4
@@ -29,7 +29,7 @@ class CDCLTest extends FunSuite with Matchers {
     cnf$.get should be (solution)
   }
   test("unsat CDCL") {
-    import com.simplytyped.yoyak.domain.CNFConversions._
+    import com.simplytyped.yoyak.solver.domain.CNFConversions._
     val cnf : CNF =
       """p cnf 3 4
         |1 0
