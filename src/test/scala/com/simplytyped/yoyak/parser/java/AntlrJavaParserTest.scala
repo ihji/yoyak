@@ -5,22 +5,13 @@ import java.io.{ByteArrayInputStream, InputStream}
 import org.scalatest.{Matchers, FunSuite}
 
 class AntlrJavaParserTest extends FunSuite with Matchers {
-  import AntlrJavaParserTest._
+  import AntlrTestHelper._
   test("can parser basic java file") {
     val parser = new AntlrJavaParser
-    val tree = parser.parse(toStream(simple))
-    // TODO: check if it's correct
-  }
-}
+    val unit = parser.parse(toStream(simple))
 
-object AntlrJavaParserTest {
-  val simple =
-    """
-      |class Test {
-      |    void foo() {
-      |        System.out.println("hello");
-      |    }
-      |}
-    """.stripMargin
-  def toStream(str: String) : InputStream = new ByteArrayInputStream(str.getBytes)
+    unit.toStringTree(parser.rawParser.get) should be (
+    "(compilationUnit (typeDeclaration (classDeclaration class Test (classBody { (classBodyDeclaration (memberDeclaration (methodDeclaration void foo (formalParameters ( )) (methodBody (block { (blockStatement (statement (statementExpression (expression (expression (expression (expression (primary System)) . out) . println) ( (expressionList (expression (primary (literal \"hello\")))) ))) ;)) }))))) }))) <EOF>)"
+    )
+  }
 }

@@ -1,5 +1,7 @@
 package com.simplytyped.yoyak.il
 
+import com.simplytyped.yoyak.il.CommonIL.Statement.Stmt
+
 /* container for common IL
    common IL is an input program representation before graph transformation
    - assign statement
@@ -11,8 +13,33 @@ package com.simplytyped.yoyak.il
    - goto statement
 */
 object CommonIL {
+  case class Program(
+    classes : Map[ClassName,Clazz]
+  )
 
-  case class MethodSig(className: String, methodName: String, params: List[Type.ValueType])
+  case class Clazz(
+    name : ClassName,
+    methods : Map[MethodSig,Method]
+  )
+
+  case class Method(
+    name : MethodSig,
+    statements : List[Stmt]
+  )
+
+  case class ClassName(packageName: List[String], name: String)
+  object ClassName {
+    def apply(className: String) : ClassName = {
+      val splitedName = className.split('.')
+      if(splitedName.isEmpty) ClassName(List.empty,className)
+      else ClassName(splitedName.dropRight(1).toList,splitedName.last)
+    }
+  }
+
+  case class MethodSig(className: ClassName, methodName: String, params: List[Type.ValueType])
+  object MethodSig {
+    val dummy = MethodSig(ClassName("dummy"), "dummy", List())
+  }
 
   object Statement {
     sealed abstract class Stmt {
