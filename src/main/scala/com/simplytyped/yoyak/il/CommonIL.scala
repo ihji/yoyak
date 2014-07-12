@@ -46,6 +46,8 @@ object CommonIL {
       val sourceInfo : SourceInfo
     }
 
+    case class Identity(lv: Value.Local, rv: Value.Param, sourceInfo: SourceInfo) extends Stmt
+
     case class Assign(lv: Value.Loc, rv: Value.Exp, sourceInfo: SourceInfo) extends Stmt
 
     case class Invoke(ret: Option[Value.Loc], callee: Type.InvokeType, sourceInfo: SourceInfo) extends Stmt
@@ -97,6 +99,8 @@ object CommonIL {
     case class BooleanConstant(v: Boolean) extends Exp
     case class ShortConstant(v: Short) extends Exp
     case object NullConstant extends Exp
+    case object This extends Exp
+    case class Param(i: Int) extends Exp
 
     sealed abstract class BinExp extends Exp {
       val lv : Value.Exp
@@ -134,5 +138,6 @@ object CommonIL {
     }
 
     sealed abstract class Loc
+    case class Local(id: String, ty: Type.ValueType) extends Loc
   }
 }

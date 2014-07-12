@@ -11,5 +11,13 @@ object AntlrTestHelper {
       |    }
       |}
     """.stripMargin
+  val simpleWithParam =
+    """
+      |class Test {
+      |    void foo(int[][] x) {
+      |        System.out.println("hello");
+      |    }
+      |}
+    """.stripMargin
   def toStream(str: String) : InputStream = new ByteArrayInputStream(str.getBytes)
 }
