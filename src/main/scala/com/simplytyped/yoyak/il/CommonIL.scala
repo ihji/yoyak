@@ -19,7 +19,9 @@ object CommonIL {
 
   case class Clazz(
     name : ClassName,
-    methods : Map[MethodSig,Method]
+    methods : Map[MethodSig,Method],
+    interfaces : Set[ClassName],
+    superClass : ClassName
   )
 
   case class Method(
@@ -83,7 +85,7 @@ object CommonIL {
     case object ShortType extends PrimType
     case object NullType extends PrimType
 
-    case class RefType(className: String) extends ValueType
+    case class RefType(className: ClassName) extends ValueType
     case class ArrayType(t: ValueType, dim: Int) extends ValueType
     case object UnknownType extends ValueType
   }

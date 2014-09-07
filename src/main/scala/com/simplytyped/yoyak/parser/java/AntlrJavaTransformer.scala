@@ -1,5 +1,6 @@
 package com.simplytyped.yoyak.parser.java
 
+import com.simplytyped.yoyak.il.CommonIL.Type.RefType
 import com.simplytyped.yoyak.il.CommonIL._
 import Statement._
 import Value._
@@ -17,7 +18,7 @@ class AntlrJavaTransformer {
     val classOrInterfaceTy = t.classOrInterfaceType()
     val resultTy =
       if(classOrInterfaceTy != null) {
-        val name = classOrInterfaceTy.getText
+        val name = ClassName(classOrInterfaceTy.getText)
         Type.RefType(name)
       } else {
         val primTy = t.primitiveType()
@@ -56,11 +57,14 @@ class AntlrJavaTransformer {
   }
   def classDefToClazz(classDef: ClassDeclarationContext) : Option[Clazz] = {
     val className = ClassName(classDef.Identifier().getSymbol.getText)
+    val superClass = Option(classDef.`type`()).map{typeContextToType}.map{_.asInstanceOf[RefType].className}.getOrElse(ClassName("java.lang.Object"))
+    val interfaces = Option(classDef.typeList()).map{_.`type`().asScala.map{typeContextToType}.map{_.asInstanceOf[RefType].className}.toSet}.getOrElse(Set.empty[ClassName])
+
     val memberDefs = classDef.classBody().classBodyDeclaration().asScala.map{_.memberDeclaration()}.toList
     val methodDefs = memberDefs.filter{_.methodDeclaration() != null}
     val methods = methodDefs.flatMap{x => methodDefToMethod(className,x.methodDeclaration())}
 
-    Some(Clazz(className,methods.map{x=>(x.name,x)}.toMap))
+    Some(Clazz(className,methods.map{x=>(x.name,x)}.toMap,interfaces,superClass))
   }
   def compilationUnitToProgram(units: CompilationUnitContext) : Program = {
     val typeDefs = units.typeDeclaration().asScala.toList
