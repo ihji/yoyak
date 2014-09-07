@@ -7,7 +7,7 @@ import org.scalacheck.Arbitrary.arbitrary
  * automatic test graph generator
  */
 object GraphGenerator {
-  case class IntNode(data: Int) extends NodeLike[IntNode] { type D = Int; def compare(that: IntNode) = Integer.compare(data,that.data) }
+  case class IntNode(data: Int) extends NodeLike[IntNode] { type D = Int; def compare(that: IntNode) = data compare that.data }
   case class IntEdge(from: IntNode, to: IntNode) extends EdgeLike[IntNode] { type L = Option[Nothing]; val label = None }
   case class IntegerImmutableGraph(nodes: Set[IntNode], edges: Set[IntEdge], nexts: Map[IntNode,Set[IntEdge]], prevs: Map[IntNode,Set[IntEdge]]) extends ImmutableGraphLike[IntNode,IntEdge,IntegerImmutableGraph] {
 
