@@ -131,13 +131,29 @@ class DexlibDexTransformer {
         val loc = getRegVar(instanceOf.getRegisterB)
         val ty = typeTransform(instanceOf.getReference.asInstanceOf[TypeReference].getType)
         (List(Assign(dest,InstanceOfExp(loc,ty),SourceInfo.dummy)),remaining)
-      case Opcode.ARRAY_LENGTH => ???
-      case Opcode.NEW_INSTANCE => ???
-      case Opcode.NEW_ARRAY => ???
+      case Opcode.ARRAY_LENGTH =>
+        val length = instr.asInstanceOf[DexBackedInstruction12x]
+        val dest = getRegVar(length.getRegisterA)
+        val loc = getRegVar(length.getRegisterB)
+        (List(Assign(dest,LengthExp(loc),SourceInfo.dummy)),remaining)
+      case Opcode.NEW_INSTANCE =>
+        val newInstance = instr.asInstanceOf[DexBackedInstruction21c]
+        val dest = getRegVar(newInstance.getRegisterA)
+        val ty = typeTransform(newInstance.getReference.asInstanceOf[TypeReference].getType)
+        (List(Assign(dest,NewExp(ty),SourceInfo.dummy)),remaining)
+      case Opcode.NEW_ARRAY =>
+        val newArray = instr.asInstanceOf[DexBackedInstruction22c]
+        val dest = getRegVar(newArray.getRegisterA)
+        val size = getRegVar(newArray.getRegisterB)
+        val ty = typeTransform(newArray.getReference.asInstanceOf[TypeReference].getType)
+        (List(Assign(dest,NewArrayExp(ty,size),SourceInfo.dummy)),remaining)
       case Opcode.FILLED_NEW_ARRAY => ???
       case Opcode.FILLED_NEW_ARRAY_RANGE => ???
       case Opcode.FILL_ARRAY_DATA => ???
-      case Opcode.THROW => ???
+      case Opcode.THROW =>
+        val thr = instr.asInstanceOf[DexBackedInstruction11x]
+        val loc = getRegVar(thr.getRegisterA)
+        (List(Throw(loc,SourceInfo.dummy)),remaining)
       case Opcode.GOTO => ???
       case Opcode.GOTO_16 => ???
       case Opcode.GOTO_32 => ???

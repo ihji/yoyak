@@ -13,6 +13,9 @@ trait AbstractTransferable[D] {
       case s: Return => transferReturn(s, dom)
       case s: Nop => transferNop(s, dom)
       case s: Goto => transferGoto(s, dom)
+      case s: EnterMonitor => transferEnterMonitor(s, dom)
+      case s: ExitMonitor => transferExitMonitor(s, dom)
+      case s: Throw => transferThrow(s, dom)
     }
   }
   def transferIdentity(stmt: Identity, dom: D) : D
@@ -23,4 +26,7 @@ trait AbstractTransferable[D] {
   def transferReturn(stmt: Return, dom: D) : D
   def transferNop(stmt: Nop, dom: D) : D
   def transferGoto(stmt: Goto, dom: D) : D
+  def transferEnterMonitor(stmt: EnterMonitor, dom: D) : D
+  def transferExitMonitor(stmt: ExitMonitor, dom: D) : D
+  def transferThrow(stmt: Throw, dom: D) : D
 }

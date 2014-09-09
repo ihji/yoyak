@@ -67,6 +67,8 @@ object CommonIL {
     case class EnterMonitor(v: Value.Loc, sourceInfo: SourceInfo) extends Stmt
 
     case class ExitMonitor(v: Value.Loc, sourceInfo: SourceInfo) extends Stmt
+
+    case class Throw(v: Value.Loc, sourceInfo: SourceInfo) extends Stmt
   }
 
   object Type {
@@ -112,6 +114,9 @@ object CommonIL {
     case class Param(i: Int) extends t
     case class CastExp(v: Loc, ty: Type.ValueType) extends t
     case class InstanceOfExp(v: Loc, ty: Type.ValueType) extends t
+    case class LengthExp(v: Loc) extends t
+    case class NewExp(ty: Type.ValueType) extends t
+    case class NewArrayExp(ty: Type.ValueType, size: Loc) extends t
 
     sealed abstract class BinExp extends t {
       val lv : Value.t
