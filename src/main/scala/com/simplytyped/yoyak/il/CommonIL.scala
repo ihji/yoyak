@@ -50,7 +50,7 @@ object CommonIL {
 
     case class Identity(lv: Value.Local, rv: Value.Param, sourceInfo: SourceInfo) extends Stmt
 
-    case class Assign(lv: Value.Loc, rv: Value.Exp, sourceInfo: SourceInfo) extends Stmt
+    case class Assign(lv: Value.Loc, rv: Value.t, sourceInfo: SourceInfo) extends Stmt
 
     case class Invoke(ret: Option[Value.Loc], callee: Type.InvokeType, sourceInfo: SourceInfo) extends Stmt
 
@@ -58,20 +58,24 @@ object CommonIL {
 
     case class Block(stmts: List[Stmt], sourceInfo: SourceInfo) extends Stmt
 
-    case class Return(v: Option[Value.Exp], sourceInfo: SourceInfo) extends Stmt
+    case class Return(v: Option[Value.t], sourceInfo: SourceInfo) extends Stmt
 
     case class Nop(sourceInfo: SourceInfo) extends Stmt
 
     case class Goto(jumpTo: Stmt, sourceInfo: SourceInfo) extends Stmt
+
+    case class EnterMonitor(v: Value.Loc, sourceInfo: SourceInfo) extends Stmt
+
+    case class ExitMonitor(v: Value.Loc, sourceInfo: SourceInfo) extends Stmt
   }
 
   object Type {
     sealed abstract class InvokeType {
       val callee: MethodSig
-      val args: List[Value.Exp]
+      val args: List[Value.t]
     }
-    case class DynamicInvoke(callee: MethodSig, args: List[Value.Exp], base: Value.Loc) extends InvokeType
-    case class StaticInvoke(callee: MethodSig, args: List[Value.Exp]) extends InvokeType
+    case class DynamicInvoke(callee: MethodSig, args: List[Value.t], base: Value.Loc) extends InvokeType
+    case class StaticInvoke(callee: MethodSig, args: List[Value.t]) extends InvokeType
 
     sealed abstract class ValueType
     sealed abstract class PrimType extends ValueType
@@ -91,26 +95,31 @@ object CommonIL {
   }
 
   object Value {
-    sealed abstract class Exp
-    case class IntegerConstant(v: Int) extends Exp
-    case class LongConstant(v: Long) extends Exp
-    case class FloatConstant(v: Float) extends Exp
-    case class DoubleConstant(v: Double) extends Exp
-    case class CharConstant(v: Char) extends Exp
-    case class ByteConstant(v: Byte) extends Exp
-    case class BooleanConstant(v: Boolean) extends Exp
-    case class ShortConstant(v: Short) extends Exp
-    case object NullConstant extends Exp
-    case object This extends Exp
-    case class Param(i: Int) extends Exp
+    sealed abstract class t
+    case class IntegerConstant(v: Int) extends t
+    case class LongConstant(v: Long) extends t
+    case class FloatConstant(v: Float) extends t
+    case class DoubleConstant(v: Double) extends t
+    case class CharConstant(v: Char) extends t
+    case class ByteConstant(v: Byte) extends t
+    case class BooleanConstant(v: Boolean) extends t
+    case class ShortConstant(v: Short) extends t
+    case class StringConstant(s: String) extends t
+    case class ClassConstant(ty: Type.ValueType) extends t
+    case object NullConstant extends t
+    case object This extends t
+    case object CaughtExceptionRef extends t
+    case class Param(i: Int) extends t
+    case class CastExp(v: Loc, ty: Type.ValueType) extends t
+    case class InstanceOfExp(v: Loc, ty: Type.ValueType) extends t
 
-    sealed abstract class BinExp extends Exp {
-      val lv : Value.Exp
-      val rv : Value.Exp
+    sealed abstract class BinExp extends t {
+      val lv : Value.t
+      val rv : Value.t
       val op : BinOp.Op
     }
-    case class CompBinExp(lv: Value.Exp, op: BinOp.CompOp, rv: Value.Exp) extends BinExp
-    case class CondBinExp(lv: Value.Exp, op: BinOp.CondOp, rv: Value.Exp) extends BinExp
+    case class CompBinExp(lv: Value.t, op: BinOp.CompOp, rv: Value.t) extends BinExp
+    case class CondBinExp(lv: Value.t, op: BinOp.CondOp, rv: Value.t) extends BinExp
 
     object BinOp {
       sealed abstract class Op
@@ -139,7 +148,7 @@ object CommonIL {
       case object ^ extends CompOp
     }
 
-    sealed abstract class Loc
+    sealed abstract class Loc extends t
     case class Local(id: String, ty: Type.ValueType) extends Loc
   }
 }

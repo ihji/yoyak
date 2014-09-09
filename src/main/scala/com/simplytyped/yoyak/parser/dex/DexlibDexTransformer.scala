@@ -2,7 +2,13 @@ package com.simplytyped.yoyak.parser.dex
 
 import com.simplytyped.yoyak.il.CommonIL.Statement._
 import com.simplytyped.yoyak.il.CommonIL.Type
+import com.simplytyped.yoyak.il.CommonIL.Value._
+import com.simplytyped.yoyak.il.SourceInfo
+import com.simplytyped.yoyak.parser.dex.DexlibDexTransformer.InvalidOrderException
 import org.jf.dexlib2.Opcode
+import org.jf.dexlib2.dexbacked.instruction._
+import org.jf.dexlib2.iface.instruction.Instruction
+import org.jf.dexlib2.iface.reference.{TypeReference, StringReference}
 
 import scala.collection.JavaConverters._
 import com.simplytyped.yoyak.il.CommonIL._
@@ -23,48 +29,108 @@ class DexlibDexTransformer {
       case "double" => Type.DoubleType
       case _ if ty.endsWith("[]") =>
         val name = ty.takeWhile(_ != '[')
-        val dim = ty.count{x => x == '['}
+        val dim = ty.count { x => x == '['}
         val arrayTy = typeTransform(name)
-        Type.ArrayType(arrayTy,dim)
+        Type.ArrayType(arrayTy, dim)
       case _ => Type.RefType(ClassName(ty))
     }
   }
-  def opcodeTransform(opcodes: List[Opcode]) : (List[Stmt], List[Opcode]) = {
-    val opcode::remaining = opcodes
-    val stmts = opcode match {
-      case Opcode.NOP => ???
-      case Opcode.MOVE => ???
-      case Opcode.MOVE_FROM16 => ???
-      case Opcode.MOVE_16 => ???
-      case Opcode.MOVE_WIDE => ???
-      case Opcode.MOVE_WIDE_FROM16 => ???
-      case Opcode.MOVE_WIDE_16 => ???
-      case Opcode.MOVE_OBJECT => ???
-      case Opcode.MOVE_OBJECT_FROM16 => ???
-      case Opcode.MOVE_OBJECT_16 => ???
-      case Opcode.MOVE_RESULT => ???
-      case Opcode.MOVE_RESULT_WIDE => ???
-      case Opcode.MOVE_RESULT_OBJECT => ???
-      case Opcode.MOVE_EXCEPTION => ???
-      case Opcode.RETURN_VOID => ???
-      case Opcode.RETURN => ???
-      case Opcode.RETURN_WIDE => ???
-      case Opcode.RETURN_OBJECT => ???
-      case Opcode.CONST_4 => ???
-      case Opcode.CONST_16 => ???
-      case Opcode.CONST => ???
-      case Opcode.CONST_HIGH16 => ???
-      case Opcode.CONST_WIDE_16 => ???
-      case Opcode.CONST_WIDE_32 => ???
-      case Opcode.CONST_WIDE => ???
-      case Opcode.CONST_WIDE_HIGH16 => ???
-      case Opcode.CONST_STRING => ???
-      case Opcode.CONST_STRING_JUMBO => ???
-      case Opcode.CONST_CLASS => ???
-      case Opcode.MONITOR_ENTER => ???
-      case Opcode.MONITOR_EXIT => ???
-      case Opcode.CHECK_CAST => ???
-      case Opcode.INSTANCE_OF => ???
+  def instructionTransform(instrs: List[Instruction]) : (List[Stmt], List[Instruction]) = {
+    val instr::remaining = instrs
+    instr.getOpcode match {
+      case Opcode.NOP =>
+        (List(Nop(SourceInfo.dummy)),remaining)
+      case Opcode.MOVE | Opcode.MOVE_WIDE | Opcode.MOVE_OBJECT =>
+        val move = instr.asInstanceOf[DexBackedInstruction12x]
+        val dest = getRegVar(move.getRegisterA)
+        val src = getRegVar(move.getRegisterB)
+        (List(Assign(dest,src,SourceInfo.dummy)),remaining)
+      case Opcode.MOVE_FROM16 | Opcode.MOVE_WIDE_FROM16 | Opcode.MOVE_OBJECT_FROM16 =>
+        val move = instr.asInstanceOf[DexBackedInstruction22x]
+        val dest = getRegVar(move.getRegisterA)
+        val src = getRegVar(move.getRegisterB)
+        (List(Assign(dest,src,SourceInfo.dummy)),remaining)
+      case Opcode.MOVE_16 | Opcode.MOVE_WIDE_16 | Opcode.MOVE_OBJECT_16 =>
+        val move = instr.asInstanceOf[DexBackedInstruction32x]
+        val dest = getRegVar(move.getRegisterA)
+        val src = getRegVar(move.getRegisterB)
+        (List(Assign(dest,src,SourceInfo.dummy)),remaining)
+      case Opcode.MOVE_RESULT | Opcode.MOVE_RESULT_WIDE | Opcode.MOVE_RESULT_OBJECT =>
+        throw new InvalidOrderException("should be done immediately after invoke-kind")
+      case Opcode.MOVE_EXCEPTION =>
+        val move = instr.asInstanceOf[DexBackedInstruction11x]
+        val dest = getRegVar(move.getRegisterA)
+        (List(Assign(dest,CaughtExceptionRef,SourceInfo.dummy)),remaining)
+      case Opcode.RETURN_VOID =>
+        (List(Return(None,SourceInfo.dummy)),remaining)
+      case Opcode.RETURN | Opcode.RETURN_WIDE | Opcode.RETURN_OBJECT =>
+        val ret = instr.asInstanceOf[DexBackedInstruction11x]
+        val retVal = getRegVar(ret.getRegisterA)
+        (List(Return(Some(retVal),SourceInfo.dummy)),remaining)
+      case Opcode.CONST_4 =>
+        val const = instr.asInstanceOf[DexBackedInstruction11n]
+        val dest = getRegVar(const.getRegisterA)
+        val constVal = const.getNarrowLiteral
+        (List(Assign(dest,IntegerConstant(constVal),SourceInfo.dummy)),remaining)
+      case Opcode.CONST_16 | Opcode.CONST_WIDE_16 =>
+        val const = instr.asInstanceOf[DexBackedInstruction21s]
+        val dest = getRegVar(const.getRegisterA)
+        val constVal = const.getNarrowLiteral
+        (List(Assign(dest,IntegerConstant(constVal),SourceInfo.dummy)),remaining)
+      case Opcode.CONST | Opcode.CONST_WIDE_32 =>
+        val const = instr.asInstanceOf[DexBackedInstruction31i]
+        val dest = getRegVar(const.getRegisterA)
+        val constVal = const.getNarrowLiteral
+        (List(Assign(dest,IntegerConstant(constVal),SourceInfo.dummy)),remaining)
+      case Opcode.CONST_HIGH16 =>
+        val const = instr.asInstanceOf[DexBackedInstruction21ih]
+        val dest = getRegVar(const.getRegisterA)
+        val constVal = const.getNarrowLiteral
+        (List(Assign(dest,IntegerConstant(constVal),SourceInfo.dummy)),remaining)
+      case Opcode.CONST_WIDE =>
+        val const = instr.asInstanceOf[DexBackedInstruction51l]
+        val dest = getRegVar(const.getRegisterA)
+        val constVal = const.getWideLiteral
+        (List(Assign(dest,LongConstant(constVal),SourceInfo.dummy)),remaining)
+      case Opcode.CONST_WIDE_HIGH16 =>
+        val const = instr.asInstanceOf[DexBackedInstruction21lh]
+        val dest = getRegVar(const.getRegisterA)
+        val constVal = const.getWideLiteral
+        (List(Assign(dest,LongConstant(constVal),SourceInfo.dummy)),remaining)
+      case Opcode.CONST_STRING =>
+        val const = instr.asInstanceOf[DexBackedInstruction21c]
+        val dest = getRegVar(const.getRegisterA)
+        val constVal = const.getReference.asInstanceOf[StringReference].getString
+        (List(Assign(dest,StringConstant(constVal),SourceInfo.dummy)),remaining)
+      case Opcode.CONST_STRING_JUMBO =>
+        val const = instr.asInstanceOf[DexBackedInstruction31c]
+        val dest = getRegVar(const.getRegisterA)
+        val constVal = const.getReference.asInstanceOf[StringReference].getString
+        (List(Assign(dest,StringConstant(constVal),SourceInfo.dummy)),remaining)
+      case Opcode.CONST_CLASS =>
+        val const = instr.asInstanceOf[DexBackedInstruction21c]
+        val dest = getRegVar(const.getRegisterA)
+        val constVal = typeTransform(const.getReference.asInstanceOf[TypeReference].getType)
+        (List(Assign(dest,ClassConstant(constVal),SourceInfo.dummy)),remaining)
+      case Opcode.MONITOR_ENTER =>
+        val mon = instr.asInstanceOf[DexBackedInstruction11x]
+        val loc = getRegVar(mon.getRegisterA)
+        (List(EnterMonitor(loc,SourceInfo.dummy)),remaining)
+      case Opcode.MONITOR_EXIT =>
+        val mon = instr.asInstanceOf[DexBackedInstruction11x]
+        val loc = getRegVar(mon.getRegisterA)
+        (List(ExitMonitor(loc,SourceInfo.dummy)),remaining)
+      case Opcode.CHECK_CAST =>
+        val check = instr.asInstanceOf[DexBackedInstruction21c]
+        val loc = getRegVar(check.getRegisterA)
+        val ty = typeTransform(check.getReference.asInstanceOf[TypeReference].getType)
+        (List(Assign(loc,CastExp(loc,ty),SourceInfo.dummy)),remaining)
+      case Opcode.INSTANCE_OF =>
+        val instanceOf = instr.asInstanceOf[DexBackedInstruction22c]
+        val dest = getRegVar(instanceOf.getRegisterA)
+        val loc = getRegVar(instanceOf.getRegisterB)
+        val ty = typeTransform(instanceOf.getReference.asInstanceOf[TypeReference].getType)
+        (List(Assign(dest,InstanceOfExp(loc,ty),SourceInfo.dummy)),remaining)
       case Opcode.ARRAY_LENGTH => ???
       case Opcode.NEW_INSTANCE => ???
       case Opcode.NEW_ARRAY => ???
@@ -286,7 +352,6 @@ class DexlibDexTransformer {
       case Opcode.SPARSE_SWITCH_PAYLOAD => ???
       case Opcode.ARRAY_PAYLOAD => ???
     }
-    (stmts,remaining)
   }
   def methodTransform(method: DexBackedMethod) : Method = {
     val name = method.getName
@@ -295,12 +360,12 @@ class DexlibDexTransformer {
     val sig = MethodSig(className,name,params)
 
     val debugInfos = method.getImplementation.getDebugItems.asScala.toList // TODO : annotate opcodes by making state machine
-    var opcodes = method.getImplementation.getInstructions.asScala.map{_.getOpcode}.toList
+    var instrs = method.getImplementation.getInstructions.asScala.toList
     val stmtBuffer = new ListBuffer[Stmt]
-    while(opcodes.nonEmpty) {
-      val (stmts,remaining) = opcodeTransform(opcodes)
+    while(instrs.nonEmpty) {
+      val (stmts,remaining) = instructionTransform(instrs)
       stmtBuffer.appendAll(stmts)
-      opcodes = remaining
+      instrs = remaining
     }
 
     Method(sig,stmtBuffer.toList)
@@ -320,4 +385,9 @@ class DexlibDexTransformer {
     val classMap = classSet.map{classTransform}.map{x=>(x.name,x)}.toMap
     Program(classMap)
   }
+  private def getRegVar(id: Int) = Local("$reg"+id,Type.UnknownType)
+}
+
+object DexlibDexTransformer {
+  class InvalidOrderException(msg: String) extends Exception
 }
