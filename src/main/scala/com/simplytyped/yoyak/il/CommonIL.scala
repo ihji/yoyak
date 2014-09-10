@@ -54,15 +54,15 @@ object CommonIL {
 
     case class Invoke(ret: Option[Value.Loc], callee: Type.InvokeType, sourceInfo: SourceInfo) extends Stmt
 
-    case class If(cond: Value.CondBinExp, thenBlock: Block, elseBlock: Block, sourceInfo: SourceInfo) extends Stmt
+    case class If(cond: Value.CondBinExp, thenOffset: Int, sourceInfo: SourceInfo) extends Stmt
 
-    case class Block(stmts: List[Stmt], sourceInfo: SourceInfo) extends Stmt
+    case class Switch(v: Value.Loc, keys: List[Value.t], offsets: List[Int], sourceInfo: SourceInfo) extends Stmt
 
     case class Return(v: Option[Value.t], sourceInfo: SourceInfo) extends Stmt
 
     case class Nop(sourceInfo: SourceInfo) extends Stmt
 
-    case class Goto(jumpTo: Stmt, sourceInfo: SourceInfo) extends Stmt
+    case class Goto(jumpOffset: Int, sourceInfo: SourceInfo) extends Stmt
 
     case class EnterMonitor(v: Value.Loc, sourceInfo: SourceInfo) extends Stmt
 
@@ -98,6 +98,7 @@ object CommonIL {
 
   object Value {
     sealed abstract class t
+
     case class IntegerConstant(v: Int) extends t
     case class LongConstant(v: Long) extends t
     case class FloatConstant(v: Float) extends t
@@ -109,12 +110,15 @@ object CommonIL {
     case class StringConstant(s: String) extends t
     case class ClassConstant(ty: Type.ValueType) extends t
     case object NullConstant extends t
+
     case object This extends t
     case object CaughtExceptionRef extends t
     case class Param(i: Int) extends t
+
     case class CastExp(v: Loc, ty: Type.ValueType) extends t
     case class InstanceOfExp(v: Loc, ty: Type.ValueType) extends t
     case class LengthExp(v: Loc) extends t
+
     case class NewExp(ty: Type.ValueType) extends t
     case class NewArrayExp(ty: Type.ValueType, size: Loc) extends t
 
@@ -151,9 +155,15 @@ object CommonIL {
       case object >>> extends CompOp
       case object % extends CompOp
       case object ^ extends CompOp
+      case object cmp extends CompOp
+      case object cmpl extends CompOp
+      case object cmpg extends CompOp
     }
 
     sealed abstract class Loc extends t
     case class Local(id: String, ty: Type.ValueType) extends Loc
+    case class ArrayRef(base: Loc, index: Loc) extends Loc
+    case class InstanceFieldRef(base: Loc, field: String) extends Loc
+    case class StaticFieldRef(clazz: ClassName, field: String) extends Loc
   }
 }
