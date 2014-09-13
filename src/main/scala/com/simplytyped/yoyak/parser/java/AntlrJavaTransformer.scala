@@ -4,13 +4,14 @@ import com.simplytyped.yoyak.il.CommonIL.Type.RefType
 import com.simplytyped.yoyak.il.CommonIL._
 import Statement._
 import Value._
-import com.simplytyped.yoyak.il.SourceInfo
+import com.simplytyped.yoyak.il.Position
+import com.simplytyped.yoyak.il.Position.SourceInfo
 import com.simplytyped.yoyak.parser.JavaParser._
 import org.antlr.v4.runtime.Token
 import scala.collection.JavaConverters._
 
 class AntlrJavaTransformer {
-  private def getPositionFromToken(t: Token) : SourceInfo = {
+  private def getPositionFromToken(t: Token) : Position = {
     new SourceInfo(t.getLine, t.getLine, t.getCharPositionInLine, t.getCharPositionInLine, t.getTokenSource.getSourceName)
   }
   private def typeContextToType(t: TypeContext) : Type.ValueType = {
@@ -38,7 +39,7 @@ class AntlrJavaTransformer {
   private def formalParameterToIdentity(formalParam: FormalParameterContext, idx: Int) : Identity = {
     val name = formalParam.variableDeclaratorId().Identifier()
     val ty = typeContextToType(formalParam.`type`())
-    Statement.Identity(Local(name.getText,ty),Param(idx),getPositionFromToken(name.getSymbol))
+    Statement.Identity(Local(name.getText,ty),Param(idx)).setPos(getPositionFromToken(name.getSymbol))
   }
   def blockStatementContextToStmt(blockStmtCtx: BlockStatementContext) : List[Stmt] = {
     List.empty

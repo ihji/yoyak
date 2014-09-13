@@ -44,31 +44,29 @@ object CommonIL {
   }
 
   object Statement {
-    sealed abstract class Stmt {
-      val sourceInfo : SourceInfo
-    }
+    sealed abstract class Stmt extends Attachable
 
-    case class Identity(lv: Value.Local, rv: Value.Param, sourceInfo: SourceInfo) extends Stmt
+    case class Identity(lv: Value.Local, rv: Value.Param) extends Stmt
 
-    case class Assign(lv: Value.Loc, rv: Value.t, sourceInfo: SourceInfo) extends Stmt
+    case class Assign(lv: Value.Loc, rv: Value.t) extends Stmt
 
-    case class Invoke(ret: Option[Value.Loc], callee: Type.InvokeType, sourceInfo: SourceInfo) extends Stmt
+    case class Invoke(ret: Option[Value.Loc], callee: Type.InvokeType) extends Stmt
 
-    case class If(cond: Value.CondBinExp, thenOffset: Int, sourceInfo: SourceInfo) extends Stmt
+    case class If(cond: Value.CondBinExp, thenOffset: Int) extends Stmt
 
-    case class Switch(v: Value.Loc, keys: List[Value.t], offsets: List[Int], sourceInfo: SourceInfo) extends Stmt
+    case class Switch(v: Value.Loc, keys: List[Value.t], offsets: List[Int]) extends Stmt
 
-    case class Return(v: Option[Value.t], sourceInfo: SourceInfo) extends Stmt
+    case class Return(v: Option[Value.t]) extends Stmt
 
-    case class Nop(sourceInfo: SourceInfo) extends Stmt
+    case class Nop() extends Stmt
 
-    case class Goto(jumpOffset: Int, sourceInfo: SourceInfo) extends Stmt
+    case class Goto(jumpOffset: Int) extends Stmt
 
-    case class EnterMonitor(v: Value.Loc, sourceInfo: SourceInfo) extends Stmt
+    case class EnterMonitor(v: Value.Loc) extends Stmt
 
-    case class ExitMonitor(v: Value.Loc, sourceInfo: SourceInfo) extends Stmt
+    case class ExitMonitor(v: Value.Loc) extends Stmt
 
-    case class Throw(v: Value.Loc, sourceInfo: SourceInfo) extends Stmt
+    case class Throw(v: Value.Loc) extends Stmt
   }
 
   object Type {
@@ -90,6 +88,7 @@ object CommonIL {
     case object BooleanType extends PrimType
     case object ShortType extends PrimType
     case object NullType extends PrimType
+    case object VoidType extends PrimType
 
     case class RefType(className: ClassName) extends ValueType
     case class ArrayType(t: ValueType, dim: Int) extends ValueType
@@ -97,7 +96,11 @@ object CommonIL {
   }
 
   object Value {
-    sealed abstract class t
+    sealed abstract class t {
+      private[this] var rawTy : Type.ValueType = Type.UnknownType
+      def setType(ty: Type.ValueType) : this.type = { rawTy = ty; this }
+      def `type` = rawTy
+    }
 
     case class IntegerConstant(v: Int) extends t
     case class LongConstant(v: Long) extends t
