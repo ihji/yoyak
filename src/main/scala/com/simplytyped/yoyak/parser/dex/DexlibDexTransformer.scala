@@ -17,20 +17,21 @@ import org.jf.dexlib2.dexbacked.{DexBackedMethod, DexBackedClassDef, DexBackedDe
 class DexlibDexTransformer {
   def typeTransform(ty: String) : Type.ValueType = {
     ty match {
-      case "boolean" => Type.BooleanType
-      case "char" => Type.CharType
-      case "byte" => Type.ByteType
-      case "short" => Type.ShortType
-      case "int" => Type.IntegerType
-      case "long" => Type.LongType
-      case "float" => Type.FloatType
-      case "double" => Type.DoubleType
-      case _ if ty.endsWith("[]") =>
-        val name = ty.takeWhile(_ != '[')
-        val dim = ty.count { x => x == '['}
-        val arrayTy = typeTransform(name)
-        Type.ArrayType(arrayTy, dim)
-      case _ => Type.RefType(ClassName(ty))
+      case "V" => Type.VoidType
+      case "Z" => Type.BooleanType
+      case "C" => Type.CharType
+      case "B" => Type.ByteType
+      case "S" => Type.ShortType
+      case "I" => Type.IntegerType
+      case "J" => Type.LongType
+      case "F" => Type.FloatType
+      case "D" => Type.DoubleType
+      case _ if ty.startsWith("[") =>
+        val dim = ty.takeWhile(_ == '[').length
+        val baseTy = typeTransform(ty.substring(dim))
+        Type.ArrayType(baseTy, dim)
+      case _ if ty.startsWith("L") && ty.endsWith(";") =>
+        Type.RefType(ClassName(ty.substring(1,ty.length-1).replace("/",".")))
     }
   }
   def instructionTransform(instrIdx: (Instruction,Int))(implicit context: Context) : Stmt = {

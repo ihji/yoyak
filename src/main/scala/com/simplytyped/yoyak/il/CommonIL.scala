@@ -32,8 +32,12 @@ object CommonIL {
   case class ClassName(packageName: List[String], name: String)
   object ClassName {
     def apply(className: String) : ClassName = {
-      val splitedName = className.split('.')
-      if(splitedName.isEmpty) ClassName(List.empty,className)
+      val clsName =
+        if(className.startsWith("L") && className.endsWith(";")) {
+          className.substring(1,className.length-1).replace("/",".")
+        } else className
+      val splitedName = clsName.split('.')
+      if(splitedName.isEmpty) ClassName(List.empty,clsName)
       else ClassName(splitedName.dropRight(1).toList,splitedName.last)
     }
     def toString(className: ClassName) : String = {
