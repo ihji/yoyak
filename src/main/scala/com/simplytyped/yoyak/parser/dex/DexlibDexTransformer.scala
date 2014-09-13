@@ -146,9 +146,28 @@ class DexlibDexTransformer {
         val size = getRegVar(newArray.getRegisterB)
         val ty = typeTransform(newArray.getReference.asInstanceOf[TypeReference].getType)
         Assign(dest,NewArrayExp(ty,size))
-      case Opcode.FILLED_NEW_ARRAY => ???
-      case Opcode.FILLED_NEW_ARRAY_RANGE => ???
-      case Opcode.FILL_ARRAY_DATA => ???
+      case Opcode.FILLED_NEW_ARRAY =>
+        val newArray = instr.asInstanceOf[DexBackedInstruction35c]
+        val ty = typeTransform(newArray.getReference.asInstanceOf[TypeReference].getType)
+        val size = newArray.getRegisterCount
+        val args = List(getRegVar(newArray.getRegisterC),getRegVar(newArray.getRegisterD),getRegVar(newArray.getRegisterE),getRegVar(newArray.getRegisterF),getRegVar(newArray.getRegisterG)).take(size)
+        val stmts = Assign(methodReturnVar,NewArrayExp(ty,IntegerConstant(size)))::args.zipWithIndex.map{case (v,idx) => Assign(ArrayRef(methodReturnVar,IntegerConstant(idx)),v)}
+        Block(stmts)
+      case Opcode.FILLED_NEW_ARRAY_RANGE =>
+        val newArray = instr.asInstanceOf[DexBackedInstruction3rc]
+        val ty = typeTransform(newArray.getReference.asInstanceOf[TypeReference].getType)
+        val startRegister = newArray.getStartRegister
+        val registerCount = newArray.getRegisterCount
+        val args = (startRegister until startRegister+registerCount).map{getRegVar}.toList
+        val stmts = Assign(methodReturnVar,NewArrayExp(ty,IntegerConstant(registerCount)))::args.zipWithIndex.map{case (v,idx) => Assign(ArrayRef(methodReturnVar,IntegerConstant(idx)),v)}
+        Block(stmts)
+      case Opcode.FILL_ARRAY_DATA =>
+        val fillArray = instr.asInstanceOf[DexBackedInstruction31t]
+        val array = getRegVar(fillArray.getRegisterA)
+        val targetIndex = offsetToIndex(idx,fillArray.getCodeOffset)
+        val arrayDataList = context.instrs(targetIndex).asInstanceOf[DexBackedArrayPayload].getArrayElements.asScala.toList
+        val stmts = arrayDataList.zipWithIndex.map{case (d,idx) => Assign(ArrayRef(array,IntegerConstant(idx)),IntegerConstant(d.intValue))}
+        Block(stmts)
       case Opcode.THROW =>
         val thr = instr.asInstanceOf[DexBackedInstruction11x]
         val loc = getRegVar(thr.getRegisterA)

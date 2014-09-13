@@ -36,6 +36,10 @@ object CommonIL {
       if(splitedName.isEmpty) ClassName(List.empty,className)
       else ClassName(splitedName.dropRight(1).toList,splitedName.last)
     }
+    def toString(className: ClassName) : String = {
+      if(className.packageName.nonEmpty) className.packageName.mkString(".") + "." + className.name
+      else className.name
+    }
   }
 
   case class MethodSig(className: ClassName, methodName: String, params: List[Type.ValueType])
@@ -44,29 +48,33 @@ object CommonIL {
   }
 
   object Statement {
-    sealed abstract class Stmt extends Attachable
+    abstract class Stmt extends Attachable
 
-    case class Identity(lv: Value.Local, rv: Value.Param) extends Stmt
-
-    case class Assign(lv: Value.Loc, rv: Value.t) extends Stmt
-
-    case class Invoke(ret: Option[Value.Loc], callee: Type.InvokeType) extends Stmt
-
-    case class If(cond: Value.CondBinExp, thenOffset: Int) extends Stmt
+    case class Block(stmts: List[Stmt]) extends Stmt
 
     case class Switch(v: Value.Loc, keys: List[Value.t], offsets: List[Int]) extends Stmt
 
-    case class Return(v: Option[Value.t]) extends Stmt
+    sealed trait CoreStmt extends Stmt
 
-    case class Nop() extends Stmt
+    case class Identity(lv: Value.Local, rv: Value.Param) extends CoreStmt
 
-    case class Goto(jumpOffset: Int) extends Stmt
+    case class Assign(lv: Value.Loc, rv: Value.t) extends CoreStmt
 
-    case class EnterMonitor(v: Value.Loc) extends Stmt
+    case class Invoke(ret: Option[Value.Loc], callee: Type.InvokeType) extends CoreStmt
 
-    case class ExitMonitor(v: Value.Loc) extends Stmt
+    case class If(cond: Value.CondBinExp, thenOffset: Int) extends CoreStmt
 
-    case class Throw(v: Value.Loc) extends Stmt
+    case class Return(v: Option[Value.t]) extends CoreStmt
+
+    case class Nop() extends CoreStmt
+
+    case class Goto(jumpOffset: Int) extends CoreStmt
+
+    case class EnterMonitor(v: Value.Loc) extends CoreStmt
+
+    case class ExitMonitor(v: Value.Loc) extends CoreStmt
+
+    case class Throw(v: Value.Loc) extends CoreStmt
   }
 
   object Type {
@@ -102,17 +110,24 @@ object CommonIL {
       def `type` = rawTy
     }
 
-    case class IntegerConstant(v: Int) extends t
-    case class LongConstant(v: Long) extends t
-    case class FloatConstant(v: Float) extends t
-    case class DoubleConstant(v: Double) extends t
-    case class CharConstant(v: Char) extends t
-    case class ByteConstant(v: Byte) extends t
-    case class BooleanConstant(v: Boolean) extends t
-    case class ShortConstant(v: Short) extends t
-    case class StringConstant(s: String) extends t
-    case class ClassConstant(ty: Type.ValueType) extends t
-    case object NullConstant extends t
+    sealed abstract class Instant extends t
+    case class IntegerConstant(v: Int) extends Instant
+    case class LongConstant(v: Long) extends Instant
+    case class FloatConstant(v: Float) extends Instant
+    case class DoubleConstant(v: Double) extends Instant
+    case class CharConstant(v: Char) extends Instant
+    case class ByteConstant(v: Byte) extends Instant
+    case class BooleanConstant(v: Boolean) extends Instant
+    case class ShortConstant(v: Short) extends Instant
+    case class StringConstant(s: String) extends Instant
+    case class ClassConstant(ty: Type.ValueType) extends Instant
+    case object NullConstant extends Instant
+
+    sealed abstract class Loc extends Instant
+    case class Local(id: String, ty: Type.ValueType) extends Loc
+    case class ArrayRef(base: Loc, index: Instant) extends Loc
+    case class InstanceFieldRef(base: Loc, field: String) extends Loc
+    case class StaticFieldRef(clazz: ClassName, field: String) extends Loc
 
     case object This extends t
     case object CaughtExceptionRef extends t
@@ -123,7 +138,7 @@ object CommonIL {
     case class LengthExp(v: Loc) extends t
 
     case class NewExp(ty: Type.ValueType) extends t
-    case class NewArrayExp(ty: Type.ValueType, size: Loc) extends t
+    case class NewArrayExp(ty: Type.ValueType, size: Instant) extends t
 
     sealed abstract class BinExp extends t {
       val lv : Value.t
@@ -162,11 +177,5 @@ object CommonIL {
       case object cmpl extends CompOp
       case object cmpg extends CompOp
     }
-
-    sealed abstract class Loc extends t
-    case class Local(id: String, ty: Type.ValueType) extends Loc
-    case class ArrayRef(base: Loc, index: Loc) extends Loc
-    case class InstanceFieldRef(base: Loc, field: String) extends Loc
-    case class StaticFieldRef(clazz: ClassName, field: String) extends Loc
   }
 }
