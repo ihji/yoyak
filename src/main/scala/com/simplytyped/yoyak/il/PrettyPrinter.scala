@@ -28,7 +28,13 @@ class PrettyPrinter {
 
       case Assign(lv, rv) => s"${toString(lv)} = ${toString(rv)}"
 
-      case Invoke(ret, callee) => s"${ret.map{x => s"${toString(x)} = "}.getOrElse("")}${toString(callee.callee)}(${callee.args.map{toString}.mkString(",")})"
+      case Invoke(ret, callee) =>
+        callee match {
+          case DynamicInvoke(sig, args, base) =>
+            s"${ret.map{x => s"${toString(x)} = "}.getOrElse("")}${toString(base)}.${toString(sig)}(${args.map{toString}.mkString(",")})"
+          case StaticInvoke(sig, args) =>
+            s"${ret.map{x => s"${toString(x)} = "}.getOrElse("")}${toString(sig)}(${args.map{toString}.mkString(",")})"
+        }
 
       case If(cond, thenOffset) => s"if(${toString(cond)}}) goto $thenOffset"
 
@@ -104,5 +110,11 @@ object PrettyPrinter {
   def print(pgm: Program) = {
     val printer = new PrettyPrinter
     println(printer.toString(pgm))
+  }
+  def printByMethodName(contains: String, pgm: Program) = {
+    val printer = new PrettyPrinter
+    for((_,clazz) <- pgm.classes; (_,method) <- clazz.methods) {
+      if(printer.toString(method.name).contains(contains)) println(printer.toString(method))
+    }
   }
 }
