@@ -4,8 +4,9 @@ import com.simplytyped.yoyak.il.CommonIL.Statement._
 import com.simplytyped.yoyak.il.CommonIL.Type
 import com.simplytyped.yoyak.il.CommonIL.Type.{StaticInvoke, DynamicInvoke}
 import com.simplytyped.yoyak.il.CommonIL.Value._
+import com.simplytyped.yoyak.il.CommonILHelper
 import com.simplytyped.yoyak.parser.dex.DexlibDexTransformer._
-import org.jf.dexlib2.Opcode
+import org.jf.dexlib2.{AccessFlags, Opcode}
 import org.jf.dexlib2.dexbacked.instruction._
 import org.jf.dexlib2.iface.instruction.Instruction
 import org.jf.dexlib2.iface.reference.{MethodReference, FieldReference, TypeReference, StringReference}
@@ -578,11 +579,12 @@ class DexlibDexTransformer {
 
         val argCount = invoke.getRegisterCount
         val args = List(getRegVar(invoke.getRegisterC),getRegVar(invoke.getRegisterD),getRegVar(invoke.getRegisterE),getRegVar(invoke.getRegisterF),getRegVar(invoke.getRegisterG)).take(argCount)
+        val packedArgs = removeSecondOfWideRegisters(argTypes,args.tail)
 
         val retType = typeTransform(method.getReturnType)
         val retVar = if(retType == Type.VoidType) None else Some(methodReturnVar)
 
-        Invoke(retVar,DynamicInvoke(methodSig,args.tail,args.head))
+        Invoke(retVar,DynamicInvoke(methodSig,packedArgs,args.head))
       case Opcode.INVOKE_STATIC =>
         val invoke = instr.asInstanceOf[DexBackedInstruction35c]
         val method = invoke.getReference.asInstanceOf[MethodReference]
@@ -594,11 +596,12 @@ class DexlibDexTransformer {
 
         val argCount = invoke.getRegisterCount
         val args = List(getRegVar(invoke.getRegisterC),getRegVar(invoke.getRegisterD),getRegVar(invoke.getRegisterE),getRegVar(invoke.getRegisterF),getRegVar(invoke.getRegisterG)).take(argCount)
+        val packedArgs = removeSecondOfWideRegisters(argTypes,args)
 
         val retType = typeTransform(method.getReturnType)
         val retVar = if(retType == Type.VoidType) None else Some(methodReturnVar)
 
-        Invoke(retVar,StaticInvoke(methodSig,args))
+        Invoke(retVar,StaticInvoke(methodSig,packedArgs))
       case Opcode.INVOKE_VIRTUAL_RANGE | Opcode.INVOKE_SUPER_RANGE | Opcode.INVOKE_DIRECT_RANGE | Opcode.INVOKE_INTERFACE_RANGE =>
         val invoke = instr.asInstanceOf[DexBackedInstruction3rc]
         val startRegister = invoke.getStartRegister
@@ -611,11 +614,12 @@ class DexlibDexTransformer {
         val methodSig = MethodSig(className,methodName,argTypes)
 
         val args = (startRegister until startRegister+regCount).map{getRegVar}.toList
+        val packedArgs = removeSecondOfWideRegisters(argTypes,args.tail)
 
         val retType = typeTransform(method.getReturnType)
         val retVar = if(retType == Type.VoidType) None else Some(methodReturnVar)
 
-        Invoke(retVar,DynamicInvoke(methodSig,args.tail,args.head))
+        Invoke(retVar,DynamicInvoke(methodSig,packedArgs,args.head))
       case Opcode.INVOKE_STATIC_RANGE =>
         val invoke = instr.asInstanceOf[DexBackedInstruction3rc]
         val startRegister = invoke.getStartRegister
@@ -628,11 +632,12 @@ class DexlibDexTransformer {
         val methodSig = MethodSig(className,methodName,argTypes)
 
         val args = (startRegister until startRegister+regCount).map{getRegVar}.toList
+        val packedArgs = removeSecondOfWideRegisters(argTypes,args)
 
         val retType = typeTransform(method.getReturnType)
         val retVar = if(retType == Type.VoidType) None else Some(methodReturnVar)
 
-        Invoke(retVar,StaticInvoke(methodSig,args))
+        Invoke(retVar,StaticInvoke(methodSig,packedArgs))
       case Opcode.NEG_INT =>
         val unary = instr.asInstanceOf[DexBackedInstruction12x]
         val dest = getRegVar(unary.getRegisterA)
@@ -1247,12 +1252,25 @@ class DexlibDexTransformer {
     Option(method.getImplementation).map{ impl =>
 
       val debugInfos = impl.getDebugItems.asScala.toList // TODO : annotate opcodes by making state machine
+
       val instrs = impl.getInstructions.asScala.toList
       val offsetMap = buildOffsetMap(instrs)
       implicit val context = Context(offsetMap, offsetMap.map{_.swap}, instrs)
       val stmts = instrs.zipWithIndex.map{instructionTransform}
 
-      Method(sig,stmts)
+      val regCount = impl.getRegisterCount
+      val paramSizeList = params.map{CommonILHelper.getUnitSizeOf}
+      val isStatic = AccessFlags.STATIC.isSet(method.getAccessFlags)
+      val startingRegister = regCount - paramSizeList.reduceOption{_+_}.getOrElse(0)
+      val thisStmts = if(!isStatic) List(Assign(getRegVar(startingRegister-1),This)) else List.empty[Stmt]
+      val paramStmts = paramSizeList.foldLeft(thisStmts, startingRegister, 0) {
+        case ((stmt,regN,count), size) =>
+          val regVar = getRegVar(regN)
+          (Assign(regVar,Param(count))::stmt,regN+size,count+1)
+      }._1.reverse
+      val finalStmts = CommonILHelper.mergeStmts(paramStmts,stmts)
+
+      Method(sig,finalStmts)
 
     }.getOrElse(Method(sig,List()))
   }
@@ -1270,6 +1288,9 @@ class DexlibDexTransformer {
     val classSet = dexFile.getClasses.asScala
     val classMap = classSet.map{classTransform}.map{x=>(x.name,x)}.toMap
     Program(classMap)
+  }
+  private def removeSecondOfWideRegisters(paramTypes: List[Type.ValueType], args: List[Value.t]) : List[Value.t] = {
+    paramTypes.map{CommonILHelper.getUnitSizeOf}.flatMap{case 1 => List(1); case 2 => List(1,0)}.zip(args).flatMap{case (mark,v) => if(mark == 1) Some(v) else None}
   }
   private def offsetToIndex(currentIdx: Int, offset: Int)(implicit context: Context) : Int = {
     val targetOffset = context.indexToOffSetMap(currentIdx) + offset
