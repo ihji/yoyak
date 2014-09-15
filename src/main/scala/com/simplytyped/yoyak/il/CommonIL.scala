@@ -52,7 +52,9 @@ object CommonIL {
   }
 
   object Statement {
-    abstract class Stmt extends Attachable
+    abstract class Stmt extends Attachable {
+      override def equals(that: Any): Boolean = this eq that.asInstanceOf[AnyRef]
+    }
 
     case class Block(stmts: List[Stmt]) extends Stmt
 
