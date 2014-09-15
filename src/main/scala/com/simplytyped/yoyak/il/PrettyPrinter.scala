@@ -61,7 +61,7 @@ class PrettyPrinter {
       case ByteConstant(v) => v.toString
       case BooleanConstant(v) => v.toString
       case ShortConstant(v) => v.toString
-      case StringConstant(s) => s
+      case StringConstant(s) => "\""+s+"\""
       case ClassConstant(ty) => toString(ty)
       case NullConstant => "null"
 
