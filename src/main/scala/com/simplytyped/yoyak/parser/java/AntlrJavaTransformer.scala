@@ -39,7 +39,7 @@ class AntlrJavaTransformer {
   private def formalParameterToIdentity(formalParam: FormalParameterContext, idx: Int) : Identity = {
     val name = formalParam.variableDeclaratorId().Identifier()
     val ty = typeContextToType(formalParam.`type`())
-    Statement.Identity(Local(name.getText,ty),Param(idx)).setPos(getPositionFromToken(name.getSymbol))
+    Statement.Identity(Local(name.getText).setType(ty),Param(idx)).setPos(getPositionFromToken(name.getSymbol))
   }
   def blockStatementContextToStmt(blockStmtCtx: BlockStatementContext) : List[Stmt] = {
     List.empty

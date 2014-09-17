@@ -22,7 +22,7 @@ class PrettyPrinter {
     stmt match {
       case Block(stmts) => stmts.map{toString}.mkString("\n")
 
-      case Switch(v, keys, offsets) => s"switch(${toString(v)})\n${keys.zip(offsets).map{case (k,goto) => s"case ${toString(k)} => goto $goto"}.mkString("\n")}"
+      case Switch(v, keys, targets) => s"switch(${toString(v)})\n${keys.zip(targets).map{case (k,goto) => s"case ${toString(k)} => goto $goto"}.mkString("\n")}"
 
       case Identity(lv, rv) => s"${toString(lv)} := ${toString(rv)}"
 
@@ -36,13 +36,13 @@ class PrettyPrinter {
             s"${ret.map{x => s"${toString(x)} = "}.getOrElse("")}${toString(sig)}(${args.map{toString}.mkString(",")})"
         }
 
-      case If(cond, thenOffset) => s"if(${toString(cond)}}) goto $thenOffset"
+      case If(cond, target) => s"if(${toString(cond)}}) goto $target"
 
       case Return(v) => s"return ${v.map{toString}.getOrElse("")}"
 
       case Nop() => "nop"
 
-      case Goto(jumpOffset) => s"goto $jumpOffset"
+      case Goto(target) => s"goto $target"
 
       case EnterMonitor(v) => s"enterMonitor(${toString(v)})"
 
@@ -62,10 +62,10 @@ class PrettyPrinter {
       case BooleanConstant(v) => v.toString
       case ShortConstant(v) => v.toString
       case StringConstant(s) => "\""+s+"\""
-      case ClassConstant(ty) => toString(ty)
+      case ClassConstant(cn) => ClassName.toString(cn)
       case NullConstant => "null"
 
-      case Local(id, ty) => s"$id:${toString(ty)}"
+      case Local(id) => s"$id:${toString(va.ty)}"
       case ArrayRef(base, index) => s"${toString(base)}[${toString(index)}]"
       case InstanceFieldRef(base, field) => s"${toString(base)}.$field"
       case StaticFieldRef(clazz, field) => s"${ClassName.toString(clazz)}.$field"

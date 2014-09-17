@@ -54,11 +54,24 @@ object CommonIL {
   object Statement {
     abstract class Stmt extends Attachable {
       override def equals(that: Any): Boolean = this eq that.asInstanceOf[AnyRef]
+      override def hashCode() : Int = System.identityHashCode(this)
+
+      private[Stmt] def copyAttr(stmt: Stmt) : this.type = {sourcePos = stmt.pos; this}
     }
 
     case class Block(stmts: List[Stmt]) extends Stmt
 
-    case class Switch(v: Value.Loc, keys: List[Value.t], offsets: List[Int]) extends Stmt
+    case class Switch(v: Value.Loc, keys: List[Value.t], targets: List[Stmt]) extends Stmt
+
+    case class Placeholder(x: AnyRef) extends Stmt {
+      override def equals(that: Any): Boolean = {
+        that match {
+          case Placeholder(x2) => x eq x2
+          case _ => false
+        }
+      }
+      override def hashCode() : Int = System.identityHashCode(x)
+    }
 
     sealed trait CoreStmt extends Stmt
 
@@ -68,19 +81,62 @@ object CommonIL {
 
     case class Invoke(ret: Option[Value.Loc], callee: Type.InvokeType) extends CoreStmt
 
-    case class If(cond: Value.CondBinExp, thenOffset: Int) extends CoreStmt
+    case class If(cond: Value.CondBinExp, target: Stmt) extends CoreStmt
 
     case class Return(v: Option[Value.t]) extends CoreStmt
 
     case class Nop() extends CoreStmt
 
-    case class Goto(jumpOffset: Int) extends CoreStmt
+    case class Goto(target: Stmt) extends CoreStmt
 
     case class EnterMonitor(v: Value.Loc) extends CoreStmt
 
     case class ExitMonitor(v: Value.Loc) extends CoreStmt
 
     case class Throw(v: Value.Loc) extends CoreStmt
+
+    object Stmt {
+      object StmtCopier {
+        def Block(block: Block, stmts: List[Stmt]) =
+          new Block(stmts).copyAttr(block)
+
+        def Switch(switch: Switch, v: Value.Loc, keys: List[Value.t], targets: List[Stmt]) =
+          new Switch(v,keys,targets).copyAttr(switch)
+
+        def Placeholder(ph: Placeholder, x: AnyRef) =
+          new Placeholder(x).copyAttr(ph)
+
+        def Identity(iden: Identity, lv: Value.Local, rv: Value.Param) =
+          new Identity(lv,rv).copyAttr(iden)
+
+        def Assign(assign: Assign, lv: Value.Loc, rv: Value.t) =
+          new Assign(lv,rv).copyAttr(assign)
+
+        def Invoke(invoke: Invoke, ret: Option[Value.Loc], callee: Type.InvokeType) =
+          new Invoke(ret,callee).copyAttr(invoke)
+
+        def If(i: If, cond: Value.CondBinExp, target: Stmt) =
+          new If(cond,target).copyAttr(i)
+
+        def Return(ret: Return, v: Option[Value.t]) =
+          new Return(v).copyAttr(ret)
+
+        def Nop(nop: Nop) =
+          new Nop().copyAttr(nop)
+
+        def Goto(goto: Goto, target: Stmt) =
+          new Goto(target).copyAttr(goto)
+
+        def EnterMonitor(mon: EnterMonitor, v: Value.Loc) =
+          new EnterMonitor(v).copyAttr(mon)
+
+        def ExitMonitor(mon: ExitMonitor, v: Value.Loc) =
+          new ExitMonitor(v).copyAttr(mon)
+
+        def Throw(thr: Throw, v: Value.Loc) =
+          new Throw(v).copyAttr(thr)
+      }
+    }
   }
 
   object Type {
@@ -110,10 +166,12 @@ object CommonIL {
   }
 
   object Value {
-    sealed abstract class t {
-      private[this] var rawTy : Type.ValueType = Type.UnknownType
-      def setType(ty: Type.ValueType) : this.type = { rawTy = ty; this }
-      def `type` = rawTy
+    sealed abstract class t extends Typable with Attachable {
+      private def copyAttr(value: t) : this.type = {
+        sourcePos = value.pos
+        rawType = value.ty
+        this
+      }
     }
 
     sealed abstract class Instant extends t
@@ -126,11 +184,11 @@ object CommonIL {
     case class BooleanConstant(v: Boolean) extends Instant
     case class ShortConstant(v: Short) extends Instant
     case class StringConstant(s: String) extends Instant
-    case class ClassConstant(ty: Type.ValueType) extends Instant
+    case class ClassConstant(name: ClassName) extends Instant
     case object NullConstant extends Instant
 
     sealed abstract class Loc extends Instant
-    case class Local(id: String, ty: Type.ValueType) extends Loc
+    case class Local(id: String) extends Loc
     case class ArrayRef(base: Loc, index: Instant) extends Loc
     case class InstanceFieldRef(base: Loc, field: String) extends Loc
     case class StaticFieldRef(clazz: ClassName, field: String) extends Loc
@@ -139,12 +197,12 @@ object CommonIL {
     case object CaughtExceptionRef extends t
     case class Param(i: Int) extends t
 
-    case class CastExp(v: Loc, ty: Type.ValueType) extends t
-    case class InstanceOfExp(v: Loc, ty: Type.ValueType) extends t
+    case class CastExp(v: Loc, ofTy: Type.ValueType) extends t
+    case class InstanceOfExp(v: Loc, ofTy: Type.ValueType) extends t
     case class LengthExp(v: Loc) extends t
 
-    case class NewExp(ty: Type.ValueType) extends t
-    case class NewArrayExp(ty: Type.ValueType, size: Instant) extends t
+    case class NewExp(ofTy: Type.ValueType) extends t
+    case class NewArrayExp(ofTy: Type.ValueType, size: Instant) extends t
 
     sealed abstract class BinExp extends t {
       val lv : Value.t

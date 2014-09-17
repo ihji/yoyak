@@ -1,12 +1,10 @@
 package com.simplytyped.yoyak.il
 
+import com.simplytyped.yoyak.il.CommonIL.Statement.Stmt.StmtCopier
 import com.simplytyped.yoyak.il.CommonIL.Statement._
 import com.simplytyped.yoyak.il.CommonIL.Type._
 
 object CommonILHelper {
-  def mergeStmts(stmts1: List[Stmt], stmt2: List[Stmt]) : List[Stmt] = {
-    insertStmts(stmts1,stmts1.length,stmt2)
-  }
   def getUnitSizeOf(ty: ValueType) : Int = {
     ty match {
       case IntegerType => 1
@@ -25,25 +23,26 @@ object CommonILHelper {
       case UnknownType => 1
     }
   }
-  def insertStmts(dest: List[Stmt], pos: Int, src: List[Stmt]) : List[Stmt] = {
-    val range = pos until dest.length
-    val destShift = src.length
-    val shiftF = (x: Int) => {if(range.contains(x)) x + destShift else x}
-    val shiftedDest = dest.map{
-      case s@Switch(_,_,offsets) => s.copy(offsets = offsets.map{shiftF})
-      case i@If(_,offset) => i.copy(thenOffset = shiftF(offset))
-      case g@Goto(offset) => g.copy(jumpOffset = shiftF(offset))
-      case x => x
+  def stmtSubstitute(map: Map[Stmt,Stmt])(stmts: List[Stmt]) : List[Stmt] = {
+    def substitute(stmt: Stmt) : Stmt = {
+      val srcOpt = map.get(stmt)
+      if(srcOpt.nonEmpty) srcOpt.get
+      else stmt match {
+        case block@Block(innerStmts) =>
+          val translated = stmtSubstitute(map)(innerStmts)
+          StmtCopier.Block(block, translated)
+        case switch@Switch(v, keys, targets) =>
+          val translated = stmtSubstitute(map)(targets)
+          StmtCopier.Switch(switch, v, keys, translated)
+        case iff@If(cond, target) =>
+          val translated = substitute(target)
+          StmtCopier.If(iff,cond,translated)
+        case goto@Goto(target) =>
+          val translated = substitute(target)
+          StmtCopier.Goto(goto,translated)
+        case _ => stmt
+      }
     }
-
-    val srcShift = pos
-    val shiftedSrc = src.map{
-      case s@Switch(_,_,offsets) => s.copy(offsets = offsets.map{_+srcShift})
-      case i@If(_,offset) => i.copy(thenOffset = offset+srcShift)
-      case g@Goto(offset) => g.copy(jumpOffset = offset+srcShift)
-      case x => x
-    }
-    val (before,after) = shiftedDest.splitAt(pos)
-    before++shiftedSrc++after
+    stmts.map{substitute}
   }
 }
