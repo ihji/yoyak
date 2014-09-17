@@ -36,7 +36,7 @@ class PrettyPrinter {
             s"${ret.map{x => s"${toString(x)} = "}.getOrElse("")}${toString(sig)}(${args.map{toString}.mkString(",")})"
         }
 
-      case If(cond, target) => s"if(${toString(cond)}}) goto $target"
+      case If(cond, target) => s"if(${toString(cond)}) goto $target"
 
       case Return(v) => s"return ${v.map{toString}.getOrElse("")}"
 
