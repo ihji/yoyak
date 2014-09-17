@@ -169,6 +169,10 @@ object CommonIL {
     case class RefType(className: ClassName) extends ValueType
     case class ArrayType(t: ValueType, dim: Int) extends ValueType
     case object UnknownType extends ValueType
+
+    object CommonTypes {
+      val String = RefType(ClassName("java.lang.String"))
+    }
   }
 
   object Value {
@@ -181,15 +185,33 @@ object CommonIL {
     }
 
     sealed abstract class Instant extends t
-    case class IntegerConstant(v: Int) extends Instant
-    case class LongConstant(v: Long) extends Instant
-    case class FloatConstant(v: Float) extends Instant
-    case class DoubleConstant(v: Double) extends Instant
-    case class CharConstant(v: Char) extends Instant
-    case class ByteConstant(v: Byte) extends Instant
-    case class BooleanConstant(v: Boolean) extends Instant
-    case class ShortConstant(v: Short) extends Instant
-    case class StringConstant(s: String) extends Instant
+    case class IntegerConstant(v: Int) extends Instant {
+      override final def ty = Type.IntegerType
+    }
+    case class LongConstant(v: Long) extends Instant {
+      override final def ty = Type.LongType
+    }
+    case class FloatConstant(v: Float) extends Instant {
+      override final def ty = Type.FloatType
+    }
+    case class DoubleConstant(v: Double) extends Instant {
+      override final def ty = Type.DoubleType
+    }
+    case class CharConstant(v: Char) extends Instant {
+      override final def ty = Type.CharType
+    }
+    case class ByteConstant(v: Byte) extends Instant {
+      override final def ty = Type.ByteType
+    }
+    case class BooleanConstant(v: Boolean) extends Instant {
+      override final def ty = Type.BooleanType
+    }
+    case class ShortConstant(v: Short) extends Instant {
+      override final def ty = Type.ShortType
+    }
+    case class StringConstant(s: String) extends Instant {
+      override final def ty = Type.CommonTypes.String
+    }
     case class ClassConstant(name: ClassName) extends Instant
     case object NullConstant extends Instant
 
@@ -204,10 +226,10 @@ object CommonIL {
     case class Param(i: Int) extends t
 
     case class CastExp(v: Loc, ofTy: Type.ValueType) extends t
-    case class InstanceOfExp(v: Loc, ofTy: Type.ValueType) extends t
+    case class InstanceOfExp(v: Loc, ofTy: Type.RefType) extends t
     case class LengthExp(v: Loc) extends t
 
-    case class NewExp(ofTy: Type.ValueType) extends t
+    case class NewExp(ofTy: Type.RefType) extends t
     case class NewArrayExp(ofTy: Type.ValueType, size: Instant) extends t
 
     sealed abstract class BinExp extends t {
