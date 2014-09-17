@@ -136,6 +136,12 @@ object CommonIL {
         def Throw(thr: Throw, v: Value.Loc) =
           new Throw(v).copyAttr(thr)
       }
+      def expandSwitch(switch: Switch) : List[If] = {
+        import Value.{CondBinExp,BinOp}
+        switch.keys.zip(switch.targets).map{
+          case (k,t) => If(CondBinExp(switch.v,BinOp.==,k),t).copyAttr(switch)
+        }
+      }
     }
   }
 

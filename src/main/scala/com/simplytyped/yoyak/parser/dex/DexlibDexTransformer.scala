@@ -1257,8 +1257,15 @@ class DexlibDexTransformer {
       val offsetMap = buildOffsetMap(instrs)
       implicit val context = Context(offsetMap, offsetMap.map{_.swap}, instrs)
       val rawStmts = instrs.zipWithIndex.map{instructionTransform}
-      val instrToStmtsMap : Map[Stmt,Stmt] = instrs.map{Placeholder}.zip(rawStmts).toMap
-      val stmts = CommonILHelper.stmtSubstitute(instrToStmtsMap)(rawStmts)
+
+      def postProcess(stmts: List[Stmt]) = {
+        val firstPassMap : Map[Stmt,Stmt] = instrs.map{Placeholder}.zip(rawStmts).toMap
+        val firstPass = CommonILHelper.stmtSubstitute(firstPassMap)(stmts)
+        val secondPassMap = stmts.zip(firstPass).toMap
+        val secondPass = CommonILHelper.stmtSubstitute(secondPassMap)(firstPass)
+        CommonILHelper.expandStmts(secondPass)
+      }
+      val stmts = postProcess(rawStmts)
 
       val regCount = impl.getRegisterCount
       val paramSizeList = params.map{CommonILHelper.getUnitSizeOf}

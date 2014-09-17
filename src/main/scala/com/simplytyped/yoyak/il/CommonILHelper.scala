@@ -45,4 +45,22 @@ object CommonILHelper {
     }
     stmts.map{substitute}
   }
+  def stmtSubstituteCore(map: Map[Stmt,CoreStmt])(stmts: List[CoreStmt]) : List[CoreStmt] = {
+    stmtSubstitute(map)(stmts).asInstanceOf[List[CoreStmt]]
+  }
+  def expandStmts(stmts: List[Stmt]) : List[CoreStmt] = {
+    var map = Map.empty[Stmt,CoreStmt]
+    val resultStmts = stmts.flatMap {
+      case block@Block(innerStmts) =>
+        val output = expandStmts(innerStmts)
+        map += (block->output.head)
+        output
+      case switch : Switch =>
+        val output = Stmt.expandSwitch(switch)
+        map += (switch->output.head)
+        output
+      case x : CoreStmt => List(x)
+    }
+    stmtSubstituteCore(map)(resultStmts)
+  }
 }
