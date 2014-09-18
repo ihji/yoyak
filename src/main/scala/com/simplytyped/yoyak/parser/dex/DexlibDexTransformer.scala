@@ -619,12 +619,12 @@ class DexlibDexTransformer {
 
         val argCount = invoke.getRegisterCount
         val args = List(getRegVar(invoke.getRegisterC),getRegVar(invoke.getRegisterD),getRegVar(invoke.getRegisterE),getRegVar(invoke.getRegisterF),getRegVar(invoke.getRegisterG)).take(argCount)
-        val packedArgs = removeSecondOfWideRegisters(argTypes,args.tail)
+        val packedArgs = removeSecondOfWideRegisters(argTypes,args.tail).zip(argTypes).map{case (r,ty) => r.setType(ty)}
 
         val retType = typeTransform(method.getReturnType)
-        val retVar = if(retType == Type.VoidType) None else Some(methodReturnVar)
+        val retVar = if(retType == Type.VoidType) None else Some(methodReturnVar.setType(retType))
 
-        Invoke(retVar,DynamicInvoke(methodSig,packedArgs,args.head))
+        Invoke(retVar,DynamicInvoke(methodSig,packedArgs,args.head.setType(Type.RefType(className))))
       case Opcode.INVOKE_STATIC =>
         val invoke = instr.asInstanceOf[DexBackedInstruction35c]
         val method = invoke.getReference.asInstanceOf[MethodReference]
@@ -636,10 +636,10 @@ class DexlibDexTransformer {
 
         val argCount = invoke.getRegisterCount
         val args = List(getRegVar(invoke.getRegisterC),getRegVar(invoke.getRegisterD),getRegVar(invoke.getRegisterE),getRegVar(invoke.getRegisterF),getRegVar(invoke.getRegisterG)).take(argCount)
-        val packedArgs = removeSecondOfWideRegisters(argTypes,args)
+        val packedArgs = removeSecondOfWideRegisters(argTypes,args).zip(argTypes).map{case (r,ty) => r.setType(ty)}
 
         val retType = typeTransform(method.getReturnType)
-        val retVar = if(retType == Type.VoidType) None else Some(methodReturnVar)
+        val retVar = if(retType == Type.VoidType) None else Some(methodReturnVar.setType(retType))
 
         Invoke(retVar,StaticInvoke(methodSig,packedArgs))
       case Opcode.INVOKE_VIRTUAL_RANGE | Opcode.INVOKE_SUPER_RANGE | Opcode.INVOKE_DIRECT_RANGE | Opcode.INVOKE_INTERFACE_RANGE =>
@@ -654,12 +654,12 @@ class DexlibDexTransformer {
         val methodSig = MethodSig(className,methodName,argTypes)
 
         val args = (startRegister until startRegister+regCount).map{getRegVar}.toList
-        val packedArgs = removeSecondOfWideRegisters(argTypes,args.tail)
+        val packedArgs = removeSecondOfWideRegisters(argTypes,args.tail).zip(argTypes).map{case (r,ty) => r.setType(ty)}
 
         val retType = typeTransform(method.getReturnType)
-        val retVar = if(retType == Type.VoidType) None else Some(methodReturnVar)
+        val retVar = if(retType == Type.VoidType) None else Some(methodReturnVar.setType(retType))
 
-        Invoke(retVar,DynamicInvoke(methodSig,packedArgs,args.head))
+        Invoke(retVar,DynamicInvoke(methodSig,packedArgs,args.head.setType(Type.RefType(className))))
       case Opcode.INVOKE_STATIC_RANGE =>
         val invoke = instr.asInstanceOf[DexBackedInstruction3rc]
         val startRegister = invoke.getStartRegister
@@ -672,10 +672,10 @@ class DexlibDexTransformer {
         val methodSig = MethodSig(className,methodName,argTypes)
 
         val args = (startRegister until startRegister+regCount).map{getRegVar}.toList
-        val packedArgs = removeSecondOfWideRegisters(argTypes,args)
+        val packedArgs = removeSecondOfWideRegisters(argTypes,args).zip(argTypes).map{case (r,ty) => r.setType(ty)}
 
         val retType = typeTransform(method.getReturnType)
-        val retVar = if(retType == Type.VoidType) None else Some(methodReturnVar)
+        val retVar = if(retType == Type.VoidType) None else Some(methodReturnVar.setType(retType))
 
         Invoke(retVar,StaticInvoke(methodSig,packedArgs))
       case Opcode.NEG_INT =>
@@ -1311,11 +1311,13 @@ class DexlibDexTransformer {
       val paramSizeList = params.map{CommonILHelper.getUnitSizeOf}
       val isStatic = AccessFlags.STATIC.isSet(method.getAccessFlags)
       val startingRegister = regCount - paramSizeList.reduceOption{_+_}.getOrElse(0)
-      val thisStmts = if(!isStatic) List(Assign(getRegVar(startingRegister-1),This)) else List.empty[Stmt]
-      val paramStmts = paramSizeList.foldLeft(thisStmts, startingRegister, 0) {
-        case ((stmt,regN,count), size) =>
-          val regVar = getRegVar(regN)
-          (Assign(regVar,Param(count))::stmt,regN+size,count+1)
+      val thisStmts =
+        if(!isStatic) List(Assign(getRegVar(startingRegister-1).setType(Type.RefType(className)),This.setType(Type.RefType(className))))
+        else List.empty[Stmt]
+      val paramStmts = paramSizeList.zip(params).foldLeft(thisStmts, startingRegister, 0) {
+        case ((stmt,regN,count), (size,paramTy)) =>
+          val regVar = getRegVar(regN).setType(paramTy)
+          (Assign(regVar,Param(count).setType(paramTy))::stmt,regN+size,count+1)
       }._1.reverse
       val finalStmts = paramStmts++stmts
 
