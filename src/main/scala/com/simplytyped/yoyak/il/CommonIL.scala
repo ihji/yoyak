@@ -83,6 +83,8 @@ object CommonIL {
 
     case class If(cond: Value.CondBinExp, target: Stmt) extends CoreStmt
 
+    case class Assume(cond: Value.CondBinExp) extends CoreStmt
+
     case class Return(v: Option[Value.t]) extends CoreStmt
 
     case class Nop() extends CoreStmt

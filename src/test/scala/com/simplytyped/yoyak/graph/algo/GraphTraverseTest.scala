@@ -63,7 +63,7 @@ class GraphTraverseTest  extends FunSuite with Matchers {
       """.stripMargin
     val traverser = new GraphTraverseImpl[IntNode,IntEdge,IntegerImmutableGraph] {}
     val loopHeads = traverser.findLoopheads(graph)
-    loopHeads.map{_.data} should be (List(2,3,4))
+    loopHeads.map{_.data} should be (List(4,3,2))
   }
   test("find loopheads: Break") {
     val graph: IntegerImmutableGraph =
@@ -84,7 +84,7 @@ class GraphTraverseTest  extends FunSuite with Matchers {
       """.stripMargin
     val traverser = new GraphTraverseImpl[IntNode,IntEdge,IntegerImmutableGraph] {}
     val loopHeads = traverser.findLoopheads(graph)
-    loopHeads.map{_.data} should be (List(2,3))
+    loopHeads.map{_.data} should be (List(3,2))
   }
   test("find loopheads: Loop in branch") {
     val graph: IntegerImmutableGraph =

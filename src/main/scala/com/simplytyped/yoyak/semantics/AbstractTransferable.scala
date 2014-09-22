@@ -9,6 +9,7 @@ trait AbstractTransferable[D] {
       case s: Assign => transferAssign(s, dom)
       case s: Invoke => transferInvoke(s, dom)
       case s: If => transferIf(s, dom)
+      case s: Assume => transferAssume(s, dom)
       case s: Return => transferReturn(s, dom)
       case s: Nop => transferNop(s, dom)
       case s: Goto => transferGoto(s, dom)
@@ -21,6 +22,7 @@ trait AbstractTransferable[D] {
   def transferAssign(stmt: Assign, dom: D) : D
   def transferInvoke(stmt: Invoke, dom: D) : D
   def transferIf(stmt: If, dom: D) : D
+  def transferAssume(stmt: Assume, dom: D) : D
   def transferReturn(stmt: Return, dom: D) : D
   def transferNop(stmt: Nop, dom: D) : D
   def transferGoto(stmt: Goto, dom: D) : D

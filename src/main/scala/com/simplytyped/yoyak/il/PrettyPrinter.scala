@@ -38,6 +38,8 @@ class PrettyPrinter {
 
       case If(cond, target) => s"if(${toString(cond)}) goto $target"
 
+      case Assume(cond) => s"assume(${toString(cond)})"
+
       case Return(v) => s"return ${v.map{toString}.getOrElse("")}"
 
       case Nop() => "nop"
