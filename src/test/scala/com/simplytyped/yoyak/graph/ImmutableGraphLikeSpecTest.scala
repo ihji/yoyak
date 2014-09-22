@@ -41,4 +41,22 @@ class ImmutableGraphLikeSpecTest extends FunSuite with Matchers with Checkers {
       }
     }
   }
+  test("replaceNode()") {
+    val graph: IntegerImmutableGraph =
+      """digraph yoyak {
+      |  1;
+      |  2;
+      |  3;
+      |  1 -> 2;
+      |  2 -> 3;
+      |  3 -> 1;
+      |}
+    """.stripMargin
+    val newGraph = graph.replaceNode(IntNode(2),IntNode(4))
+    newGraph.nodes should be (Set(IntNode(1),IntNode(3),IntNode(4)))
+    newGraph.edges should be (Set(
+      IntEdge(IntNode(1),IntNode(4)),
+      IntEdge(IntNode(4),IntNode(3)),
+      IntEdge(IntNode(3),IntNode(1))))
+  }
 }

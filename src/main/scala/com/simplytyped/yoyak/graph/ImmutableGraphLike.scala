@@ -32,6 +32,12 @@ trait ImmutableGraphLike[Node <: NodeLike[Node], Edge <: EdgeLike[Node], Graph <
     val outgoingEdges = nexts.getOrElse(n,Set.empty[Edge])
     (incomingEdges ++ outgoingEdges).foldLeft(builder(nodes - n,edges,nexts,prevs)){_.removeEdge(_)}
   }
+  def replaceNode(origNode: Node, newNode: Node) : Graph = {
+    val nextEdges = getNexts(origNode).map{newEdge(newNode,_)}
+    val prevsEdges = getPrevs(origNode).map{newEdge(_,newNode)}
+    val removedGraph = removeNode(origNode)
+    (nextEdges++prevsEdges).foldLeft(removedGraph){_.addEdge(_)}
+  }
   def addNode(n: Node) : Graph = {
     val newNodes = nodes + n
     builder(newNodes,edges,nexts,prevs)

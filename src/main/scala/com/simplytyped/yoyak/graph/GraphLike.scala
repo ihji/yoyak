@@ -17,6 +17,7 @@ trait GraphLike[Node <: NodeLike[Node], Edge <: EdgeLike[Node], Graph <: GraphLi
   def removeEdge(from: Node, to: Node) : Graph
   def removeEdge(e: Edge) : Graph
   def removeNode(n: Node) : Graph
+  def replaceNode(origNode: Node, newNode: Node) : Graph
   def addNode(n: Node) : Graph
   def getNexts(n: Node) : Set[Node]
   def getPrevs(n: Node) : Set[Node]
