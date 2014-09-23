@@ -1,6 +1,6 @@
 package com.simplytyped.yoyak
 
-object AbsolverMain {
+object Main {
   def main(argv: Array[String]) {
     // dummy
   }
