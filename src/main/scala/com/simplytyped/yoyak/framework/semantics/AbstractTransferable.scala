@@ -1,9 +1,9 @@
-package com.simplytyped.yoyak.semantics
+package com.simplytyped.yoyak.framework.semantics
 
 import com.simplytyped.yoyak.il.CommonIL.Statement._
 
 trait AbstractTransferable[D] {
-  def transfer(stmt: Stmt, dom: D) : D = {
+  def transfer(stmt: CoreStmt, dom: D) : D = {
     stmt match {
       case s: Identity => transferIdentity(s, dom)
       case s: Assign => transferAssign(s, dom)

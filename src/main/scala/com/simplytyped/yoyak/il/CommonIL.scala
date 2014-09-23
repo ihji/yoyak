@@ -83,27 +83,29 @@ object CommonIL {
 
     sealed trait CoreStmt extends Stmt
 
-    case class Identity(lv: Value.Local, rv: Value.Param) extends CoreStmt
-
-    case class Assign(lv: Value.Loc, rv: Value.t) extends CoreStmt
-
-    case class Invoke(ret: Option[Value.Loc], callee: Type.InvokeType) extends CoreStmt
-
     case class If(cond: Value.CondBinExp, target: Target) extends CoreStmt
-
-    case class Assume(cond: Value.CondBinExp) extends CoreStmt
-
-    case class Return(v: Option[Value.t]) extends CoreStmt
-
-    case class Nop() extends CoreStmt
 
     case class Goto(target: Target) extends CoreStmt
 
-    case class EnterMonitor(v: Value.Loc) extends CoreStmt
+    sealed trait CfgStmt extends CoreStmt
 
-    case class ExitMonitor(v: Value.Loc) extends CoreStmt
+    case class Identity(lv: Value.Local, rv: Value.Param) extends CfgStmt
 
-    case class Throw(v: Value.Loc) extends CoreStmt
+    case class Assign(lv: Value.Loc, rv: Value.t) extends CfgStmt
+
+    case class Invoke(ret: Option[Value.Loc], callee: Type.InvokeType) extends CfgStmt
+
+    case class Assume(cond: Value.CondBinExp) extends CfgStmt
+
+    case class Return(v: Option[Value.t]) extends CfgStmt
+
+    case class Nop() extends CfgStmt
+
+    case class EnterMonitor(v: Value.Loc) extends CfgStmt
+
+    case class ExitMonitor(v: Value.Loc) extends CfgStmt
+
+    case class Throw(v: Value.Loc) extends CfgStmt
 
     class Target {
       private var elem : Stmt = _

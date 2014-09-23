@@ -1,4 +1,4 @@
-package com.simplytyped.yoyak.domain
+package com.simplytyped.yoyak.framework.domain
 
 trait LatticeOps[E] {
   def <=(lhs: E, rhs: E) : Boolean
