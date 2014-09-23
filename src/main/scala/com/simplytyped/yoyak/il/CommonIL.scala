@@ -262,7 +262,19 @@ object CommonIL {
       val op : BinOp.Op
     }
     case class CompBinExp(lv: Value.t, op: BinOp.CompOp, rv: Value.t) extends BinExp
-    case class CondBinExp(lv: Value.t, op: BinOp.CondOp, rv: Value.t) extends BinExp
+    case class CondBinExp(lv: Value.t, op: BinOp.CondOp, rv: Value.t) extends BinExp {
+      def negate : CondBinExp = {
+        val newOp = op match {
+          case BinOp.< => BinOp.>=
+          case BinOp.<= => BinOp.>
+          case BinOp.> => BinOp.<=
+          case BinOp.>= => BinOp.<
+          case BinOp.== => BinOp.!=
+          case BinOp.!= => BinOp.==
+        }
+        this.copy(op = newOp)
+      }
+    }
 
     object BinOp {
       sealed abstract class Op

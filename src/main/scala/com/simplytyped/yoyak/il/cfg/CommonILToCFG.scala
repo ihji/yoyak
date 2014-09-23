@@ -1,6 +1,6 @@
 package com.simplytyped.yoyak.il.cfg
 
-import com.simplytyped.yoyak.il.CommonIL.Statement.{Stmt, If, Goto, CoreStmt}
+import com.simplytyped.yoyak.il.CommonIL.Statement._
 
 import scala.collection.mutable.ListBuffer
 
@@ -57,12 +57,32 @@ class CommonILToCFG {
     }
     finalOutput.map{BasicBlock.apply}.toList
   }
+  def insertAssume(cfg: CFG) : CFG = {
+    cfg.nodes.foreach{ node =>
+      node.data.getStmts.last match {
+        case If(cond,target) =>
+          val nexts = cfg.getNexts(node)
+          assert(nexts.size == 2)
+          nexts.foreach { n =>
+            if(n.data.getStmts.find{_ ==target.getStmt}.nonEmpty) {
+              val newStmts = Assume(cond)::n.data.getStmts
+              n.data.setStmts(newStmts)
+            } else {
+              val newStmts = Assume(cond.negate)::n.data.getStmts
+              n.data.setStmts(newStmts)
+            }
+          }
+        case _ => // do nothing
+      }
+    }
+    cfg
+  }
   def transform(stmts: List[CoreStmt]) : CFG = {
-    def findByFirstStmt(blocks: List[BasicBlock], stmt: Stmt) : Option[BasicBlock] = blocks.find{_.data.head == stmt}
+    def findByFirstStmt(blocks: List[BasicBlock], stmt: Stmt) : Option[BasicBlock] = blocks.find{_.data.getStmts.head == stmt}
     val basicBlocks = makeBasicBlocks(stmts)
     val edges = basicBlocks.sliding(2).foldLeft(List.empty[BasicEdge]) {
       (edgeList,blockOfTwo) =>
-        blockOfTwo.head.data.last match {
+        blockOfTwo.head.data.getStmts.last match {
           case If(_,target) =>
             val targetBlock = findByFirstStmt(basicBlocks,target.getStmt).get
             if(blockOfTwo.size == 1) BasicEdge(blockOfTwo.head,targetBlock)::edgeList // XXX: this case shouldn't happen
@@ -70,12 +90,15 @@ class CommonILToCFG {
           case Goto(target) =>
             val targetBlock = findByFirstStmt(basicBlocks,target.getStmt).get
             BasicEdge(blockOfTwo.head,targetBlock)::edgeList
+          case Return(_) => edgeList
+          case Throw(_) => edgeList
           case _ =>
             if(blockOfTwo.size == 1) edgeList
             else BasicEdge(blockOfTwo.head,blockOfTwo.last)::edgeList
         }
     }
     val newCfg = CFG.empty
-    edges.foldLeft(newCfg) {_.addEdge(_)}
+    val rawCfg = edges.foldLeft(newCfg) {_.addEdge(_)}
+    insertAssume(rawCfg)
   }
 }

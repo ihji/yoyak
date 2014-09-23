@@ -10,6 +10,6 @@ class DexlibDexTransformerTest extends FunSuite with Matchers {
     val pgm = (new DexlibDexTransformer).translate(dexFile)
     PrettyPrinter.printByMethodName("argTest",pgm)
     val toCFG = new CommonILToCFG
-    println(toCFG.transform(pgm.findByMethodName("argTest").head.statements))
+    println(new PrettyPrinter().toDot(toCFG.transform(pgm.findByMethodName("argTest").head.statements)))
   }
 }

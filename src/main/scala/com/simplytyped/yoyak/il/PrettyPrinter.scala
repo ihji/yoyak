@@ -4,8 +4,24 @@ import com.simplytyped.yoyak.il.CommonIL._
 import com.simplytyped.yoyak.il.CommonIL.Statement._
 import com.simplytyped.yoyak.il.CommonIL.Value._
 import com.simplytyped.yoyak.il.CommonIL.Type._
+import com.simplytyped.yoyak.il.cfg.{BasicEdge, BasicBlock, CFG}
 
 class PrettyPrinter {
+  def toDot(cfg: CFG) : String = {
+    val buf = new StringBuffer()
+    buf.append("digraph yoyak {\n")
+    buf.append(cfg.nodes.map{toString}.mkString(";\n"))
+    buf.append(";\n")
+    buf.append(cfg.edges.map{toString}.mkString(";\n"))
+    buf.append(";\n}")
+    buf.toString
+  }
+  def toString(node: BasicBlock) : String = {
+    "\""+node.data.getStmts.map{toString}.map{_.replace("\"","'")}.mkString("\\n")+"\""
+  }
+  def toString(edge: BasicEdge) : String = {
+    s"${toString(edge.from)} -> ${toString(edge.to)}"
+  }
   def toString(pgm: Program) : String = {
     pgm.classes.map{c => toString(c._2)}.mkString("\n\n")
   }
@@ -115,6 +131,6 @@ object PrettyPrinter {
   }
   def printByMethodName(name: String, pgm: Program) = {
     val printer = new PrettyPrinter
-    pgm.findByMethodName(name).foreach{printer.toString}
+    pgm.findByMethodName(name).foreach{m => println(printer.toString(m))}
   }
 }

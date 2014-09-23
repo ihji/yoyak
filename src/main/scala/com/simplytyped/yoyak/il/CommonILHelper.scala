@@ -36,7 +36,7 @@ object CommonILHelper {
             iff.target.map{substitute}
           case goto : Goto =>
             goto.target.map{substitute}
-          case _ =>
+          case _ => // do nothing
         }
         stmt
       }
