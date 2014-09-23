@@ -17,7 +17,7 @@ class PrettyPrinter {
     buf.toString
   }
   def toString(node: BasicBlock) : String = {
-    "\""+node.data.getStmts.map{toString}.map{_.replace("\"","'")}.mkString("\\n")+"\""
+    "\""+node.id+":\\n"+node.data.getStmts.map{toString}.map{_.replace("\"","'")}.mkString("\\n")+"\""
   }
   def toString(edge: BasicEdge) : String = {
     s"${toString(edge.from)} -> ${toString(edge.to)}"

@@ -77,6 +77,20 @@ class CommonILToCFG {
     }
     cfg
   }
+  def removeIfandGoto(cfg: CFG) : CFG = {
+    cfg.nodes.foreach { node =>
+      node.data.getStmts.last match {
+        case _ : If =>
+          val newStmts = if(node.data.getStmts.size > 1) node.data.getStmts.dropRight(1) else List(Nop())
+          node.data.setStmts(newStmts)
+        case _ : Goto =>
+          val newStmts = if(node.data.getStmts.size > 1) node.data.getStmts.dropRight(1) else List(Nop())
+          node.data.setStmts(newStmts)
+        case _ => // do nothing
+      }
+    }
+    cfg
+  }
   def transform(stmts: List[CoreStmt]) : CFG = {
     def findByFirstStmt(blocks: List[BasicBlock], stmt: Stmt) : Option[BasicBlock] = blocks.find{_.data.getStmts.head == stmt}
     val basicBlocks = makeBasicBlocks(stmts)
@@ -99,6 +113,6 @@ class CommonILToCFG {
     }
     val newCfg = CFG.empty
     val rawCfg = edges.foldLeft(newCfg) {_.addEdge(_)}
-    insertAssume(rawCfg)
+    (insertAssume _ andThen removeIfandGoto) apply rawCfg
   }
 }
