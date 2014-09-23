@@ -20,7 +20,7 @@ class PrettyPrinter {
   }
   def toString(stmt: Stmt) : String = {
     stmt match {
-      case Block(stmts) => stmts.map{toString}.mkString("\n")
+      case Block(stmts) => stmts.getStmts.map{toString}.mkString("\n")
 
       case Switch(v, keys, targets) => s"switch(${toString(v)})\n${keys.zip(targets).map{case (k,goto) => s"case ${toString(k)} => goto $goto"}.mkString("\n")}"
 
@@ -113,10 +113,8 @@ object PrettyPrinter {
     val printer = new PrettyPrinter
     println(printer.toString(pgm))
   }
-  def printByMethodName(contains: String, pgm: Program) = {
+  def printByMethodName(name: String, pgm: Program) = {
     val printer = new PrettyPrinter
-    for((_,clazz) <- pgm.classes; (_,method) <- clazz.methods) {
-      if(printer.toString(method.name).contains(contains)) println(printer.toString(method))
-    }
+    pgm.findByMethodName(name).foreach{printer.toString}
   }
 }

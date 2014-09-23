@@ -1,6 +1,6 @@
 package com.simplytyped.yoyak.il
 
-import com.simplytyped.yoyak.il.CommonIL.Statement.Stmt
+import com.simplytyped.yoyak.il.CommonIL.Statement.CoreStmt
 
 /* container for common IL
    common IL is an input program representation before graph transformation
@@ -15,7 +15,15 @@ import com.simplytyped.yoyak.il.CommonIL.Statement.Stmt
 object CommonIL {
   case class Program(
     classes : Map[ClassName,Clazz]
-  )
+  ) {
+    def findByMethodName(name: String) : List[Method] = {
+      var list = List.empty[Method]
+      for((_,clazz) <- classes; (_,method) <- clazz.methods) {
+        if(method.name.methodName == name) list ::= method
+      }
+      list
+    }
+  }
 
   case class Clazz(
     name : ClassName,
@@ -26,7 +34,7 @@ object CommonIL {
 
   case class Method(
     name : MethodSig,
-    statements : List[Stmt]
+    statements : List[CoreStmt]
   )
 
   case class ClassName(packageName: List[String], name: String)
@@ -59,9 +67,9 @@ object CommonIL {
       private[Stmt] def copyAttr(stmt: Stmt) : this.type = {sourcePos = stmt.pos; this}
     }
 
-    case class Block(stmts: List[Stmt]) extends Stmt
+    case class Block(stmts: StatementContainer) extends Stmt
 
-    case class Switch(v: Value.Loc, keys: List[Value.t], targets: List[Stmt]) extends Stmt
+    case class Switch(v: Value.Loc, keys: List[Value.t], targets: List[Target]) extends Stmt
 
     case class Placeholder(x: AnyRef) extends Stmt {
       override def equals(that: Any): Boolean = {
@@ -81,7 +89,7 @@ object CommonIL {
 
     case class Invoke(ret: Option[Value.Loc], callee: Type.InvokeType) extends CoreStmt
 
-    case class If(cond: Value.CondBinExp, target: Stmt) extends CoreStmt
+    case class If(cond: Value.CondBinExp, target: Target) extends CoreStmt
 
     case class Assume(cond: Value.CondBinExp) extends CoreStmt
 
@@ -89,7 +97,7 @@ object CommonIL {
 
     case class Nop() extends CoreStmt
 
-    case class Goto(target: Stmt) extends CoreStmt
+    case class Goto(target: Target) extends CoreStmt
 
     case class EnterMonitor(v: Value.Loc) extends CoreStmt
 
@@ -97,12 +105,26 @@ object CommonIL {
 
     case class Throw(v: Value.Loc) extends CoreStmt
 
+    class Target {
+      private var elem : Stmt = _
+      def getStmt : Stmt = elem
+      def setStmt(stmt: Stmt) : Target = {elem = stmt; this}
+      def map(f: Stmt=>Stmt) : Target =  {elem = f(elem); this}
+    }
+
+    class StatementContainer {
+      private var stmts : List[Stmt] = List.empty
+      def getStmts : List[Stmt] = stmts
+      def setStmts(s : List[Stmt]) :StatementContainer = {stmts = s; this}
+      def map(f: Stmt=>Stmt) : StatementContainer = {stmts = stmts.map{f}; this}
+    }
+
     object Stmt {
       object StmtCopier {
-        def Block(block: Block, stmts: List[Stmt]) =
+        def Block(block: Block, stmts: StatementContainer) =
           new Block(stmts).copyAttr(block)
 
-        def Switch(switch: Switch, v: Value.Loc, keys: List[Value.t], targets: List[Stmt]) =
+        def Switch(switch: Switch, v: Value.Loc, keys: List[Value.t], targets: List[Target]) =
           new Switch(v,keys,targets).copyAttr(switch)
 
         def Placeholder(ph: Placeholder, x: AnyRef) =
@@ -117,7 +139,7 @@ object CommonIL {
         def Invoke(invoke: Invoke, ret: Option[Value.Loc], callee: Type.InvokeType) =
           new Invoke(ret,callee).copyAttr(invoke)
 
-        def If(i: If, cond: Value.CondBinExp, target: Stmt) =
+        def If(i: If, cond: Value.CondBinExp, target: Target) =
           new If(cond,target).copyAttr(i)
 
         def Return(ret: Return, v: Option[Value.t]) =
@@ -126,7 +148,7 @@ object CommonIL {
         def Nop(nop: Nop) =
           new Nop().copyAttr(nop)
 
-        def Goto(goto: Goto, target: Stmt) =
+        def Goto(goto: Goto, target: Target) =
           new Goto(target).copyAttr(goto)
 
         def EnterMonitor(mon: EnterMonitor, v: Value.Loc) =

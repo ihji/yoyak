@@ -154,7 +154,7 @@ class DexlibDexTransformer {
         val size = newArray.getRegisterCount
         val args = List(getRegVar(newArray.getRegisterC),getRegVar(newArray.getRegisterD),getRegVar(newArray.getRegisterE),getRegVar(newArray.getRegisterF),getRegVar(newArray.getRegisterG)).take(size)
         val stmts = Assign(methodReturnVar,NewArrayExp(ty,IntegerConstant(size)))::args.zipWithIndex.map{case (v,idx) => Assign(ArrayRef(methodReturnVar,IntegerConstant(idx)),v)}
-        Block(stmts)
+        Block(new StatementContainer().setStmts(stmts))
       case Opcode.FILLED_NEW_ARRAY_RANGE =>
         val newArray = instr.asInstanceOf[DexBackedInstruction3rc]
         val ty = typeTransform(newArray.getReference.asInstanceOf[TypeReference].getType)
@@ -162,29 +162,29 @@ class DexlibDexTransformer {
         val registerCount = newArray.getRegisterCount
         val args = (startRegister until startRegister+registerCount).map{getRegVar}.toList
         val stmts = Assign(methodReturnVar,NewArrayExp(ty,IntegerConstant(registerCount)))::args.zipWithIndex.map{case (v,idx) => Assign(ArrayRef(methodReturnVar,IntegerConstant(idx)),v)}
-        Block(stmts)
+        Block(new StatementContainer().setStmts(stmts))
       case Opcode.FILL_ARRAY_DATA =>
         val fillArray = instr.asInstanceOf[DexBackedInstruction31t]
         val array = getRegVar(fillArray.getRegisterA)
         val targetIndex = offsetToIndex(idx,fillArray.getCodeOffset)
         val arrayDataList = context.instrs(targetIndex).asInstanceOf[DexBackedArrayPayload].getArrayElements.asScala.toList
         val stmts = arrayDataList.zipWithIndex.map{case (d,idx) => Assign(ArrayRef(array,IntegerConstant(idx)),IntegerConstant(d.intValue))}
-        Block(stmts)
+        Block(new StatementContainer().setStmts(stmts))
       case Opcode.THROW =>
         val thr = instr.asInstanceOf[DexBackedInstruction11x]
         val loc = getRegVar(thr.getRegisterA)
         Throw(loc)
       case Opcode.GOTO =>
         val goto = instr.asInstanceOf[DexBackedInstruction10t]
-        val target = Placeholder(context.instrs(offsetToIndex(idx,goto.getCodeOffset)))
+        val target = new Target().setStmt(Placeholder(context.instrs(offsetToIndex(idx,goto.getCodeOffset))))
         Goto(target)
       case Opcode.GOTO_16 =>
         val goto = instr.asInstanceOf[DexBackedInstruction20t]
-        val target = Placeholder(context.instrs(offsetToIndex(idx,goto.getCodeOffset)))
+        val target = new Target().setStmt(Placeholder(context.instrs(offsetToIndex(idx,goto.getCodeOffset))))
         Goto(target)
       case Opcode.GOTO_32 =>
         val goto = instr.asInstanceOf[DexBackedInstruction30t]
-        val target = Placeholder(context.instrs(offsetToIndex(idx,goto.getCodeOffset)))
+        val target = new Target().setStmt(Placeholder(context.instrs(offsetToIndex(idx,goto.getCodeOffset))))
         Goto(target)
       case Opcode.PACKED_SWITCH =>
         val switch = instr.asInstanceOf[DexBackedInstruction31t]
@@ -194,7 +194,7 @@ class DexlibDexTransformer {
         val table = payload.getSwitchElements.asScala.toList
         val revLists = table.foldLeft(List.empty[Int], List.empty[Int]){ case ((ks,vs),x) => (x.getKey::ks,x.getOffset::vs) }
         val keys = revLists._1.reverse.map{IntegerConstant}
-        val targets = revLists._2.reverse.map{x => Placeholder(context.instrs(offsetToIndex(idx,x)))}
+        val targets = revLists._2.reverse.map{x => new Target().setStmt(Placeholder(context.instrs(offsetToIndex(idx,x))))}
         Switch(test,keys,targets)
       case Opcode.SPARSE_SWITCH =>
         val switch = instr.asInstanceOf[DexBackedInstruction31t]
@@ -204,7 +204,7 @@ class DexlibDexTransformer {
         val table = payload.getSwitchElements.asScala.toList
         val revLists = table.foldLeft(List.empty[Int], List.empty[Int]){ case ((ks,vs),x) => (x.getKey::ks,x.getOffset::vs) }
         val keys = revLists._1.reverse.map{IntegerConstant}
-        val targets = revLists._2.reverse.map{x => Placeholder(context.instrs(offsetToIndex(idx,x)))}
+        val targets = revLists._2.reverse.map{x => new Target().setStmt(Placeholder(context.instrs(offsetToIndex(idx,x))))}
         Switch(test,keys,targets)
       case Opcode.CMPL_FLOAT =>
         val cmp = instr.asInstanceOf[DexBackedInstruction23x]
@@ -240,67 +240,67 @@ class DexlibDexTransformer {
         val ifcond = instr.asInstanceOf[DexBackedInstruction22t]
         val first = getRegVar(ifcond.getRegisterA)
         val second = getRegVar(ifcond.getRegisterB)
-        val target = Placeholder(context.instrs(offsetToIndex(idx,ifcond.getCodeOffset)))
+        val target = new Target().setStmt(Placeholder(context.instrs(offsetToIndex(idx,ifcond.getCodeOffset))))
         If(CondBinExp(first,BinOp.==,second),target)
       case Opcode.IF_NE =>
         val ifcond = instr.asInstanceOf[DexBackedInstruction22t]
         val first = getRegVar(ifcond.getRegisterA)
         val second = getRegVar(ifcond.getRegisterB)
-        val target = Placeholder(context.instrs(offsetToIndex(idx,ifcond.getCodeOffset)))
+        val target = new Target().setStmt(Placeholder(context.instrs(offsetToIndex(idx,ifcond.getCodeOffset))))
         If(CondBinExp(first,BinOp.!=,second),target)
       case Opcode.IF_LT =>
         val ifcond = instr.asInstanceOf[DexBackedInstruction22t]
         val first = getRegVar(ifcond.getRegisterA)
         val second = getRegVar(ifcond.getRegisterB)
-        val target = Placeholder(context.instrs(offsetToIndex(idx,ifcond.getCodeOffset)))
+        val target = new Target().setStmt(Placeholder(context.instrs(offsetToIndex(idx,ifcond.getCodeOffset))))
         If(CondBinExp(first,BinOp.<,second),target)
       case Opcode.IF_GE =>
         val ifcond = instr.asInstanceOf[DexBackedInstruction22t]
         val first = getRegVar(ifcond.getRegisterA)
         val second = getRegVar(ifcond.getRegisterB)
-        val target = Placeholder(context.instrs(offsetToIndex(idx,ifcond.getCodeOffset)))
+        val target = new Target().setStmt(Placeholder(context.instrs(offsetToIndex(idx,ifcond.getCodeOffset))))
         If(CondBinExp(first,BinOp.>=,second),target)
       case Opcode.IF_GT =>
         val ifcond = instr.asInstanceOf[DexBackedInstruction22t]
         val first = getRegVar(ifcond.getRegisterA)
         val second = getRegVar(ifcond.getRegisterB)
-        val target = Placeholder(context.instrs(offsetToIndex(idx,ifcond.getCodeOffset)))
+        val target = new Target().setStmt(Placeholder(context.instrs(offsetToIndex(idx,ifcond.getCodeOffset))))
         If(CondBinExp(first,BinOp.>,second),target)
       case Opcode.IF_LE =>
         val ifcond = instr.asInstanceOf[DexBackedInstruction22t]
         val first = getRegVar(ifcond.getRegisterA)
         val second = getRegVar(ifcond.getRegisterB)
-        val target = Placeholder(context.instrs(offsetToIndex(idx,ifcond.getCodeOffset)))
+        val target = new Target().setStmt(Placeholder(context.instrs(offsetToIndex(idx,ifcond.getCodeOffset))))
         If(CondBinExp(first,BinOp.<=,second),target)
       case Opcode.IF_EQZ =>
         val ifcond = instr.asInstanceOf[DexBackedInstruction21t]
         val test = getRegVar(ifcond.getRegisterA)
-        val target = Placeholder(context.instrs(offsetToIndex(idx,ifcond.getCodeOffset)))
+        val target = new Target().setStmt(Placeholder(context.instrs(offsetToIndex(idx,ifcond.getCodeOffset))))
         If(CondBinExp(test,BinOp.==,IntegerConstant(0)),target)
       case Opcode.IF_NEZ =>
         val ifcond = instr.asInstanceOf[DexBackedInstruction21t]
         val test = getRegVar(ifcond.getRegisterA)
-        val target = Placeholder(context.instrs(offsetToIndex(idx,ifcond.getCodeOffset)))
+        val target = new Target().setStmt(Placeholder(context.instrs(offsetToIndex(idx,ifcond.getCodeOffset))))
         If(CondBinExp(test,BinOp.!=,IntegerConstant(0)),target)
       case Opcode.IF_LTZ =>
         val ifcond = instr.asInstanceOf[DexBackedInstruction21t]
         val test = getRegVar(ifcond.getRegisterA)
-        val target = Placeholder(context.instrs(offsetToIndex(idx,ifcond.getCodeOffset)))
+        val target = new Target().setStmt(Placeholder(context.instrs(offsetToIndex(idx,ifcond.getCodeOffset))))
         If(CondBinExp(test,BinOp.<,IntegerConstant(0)),target)
       case Opcode.IF_GEZ =>
         val ifcond = instr.asInstanceOf[DexBackedInstruction21t]
         val test = getRegVar(ifcond.getRegisterA)
-        val target = Placeholder(context.instrs(offsetToIndex(idx,ifcond.getCodeOffset)))
+        val target = new Target().setStmt(Placeholder(context.instrs(offsetToIndex(idx,ifcond.getCodeOffset))))
         If(CondBinExp(test,BinOp.>=,IntegerConstant(0)),target)
       case Opcode.IF_GTZ =>
         val ifcond = instr.asInstanceOf[DexBackedInstruction21t]
         val test = getRegVar(ifcond.getRegisterA)
-        val target = Placeholder(context.instrs(offsetToIndex(idx,ifcond.getCodeOffset)))
+        val target = new Target().setStmt(Placeholder(context.instrs(offsetToIndex(idx,ifcond.getCodeOffset))))
         If(CondBinExp(test,BinOp.>,IntegerConstant(0)),target)
       case Opcode.IF_LEZ =>
         val ifcond = instr.asInstanceOf[DexBackedInstruction21t]
         val test = getRegVar(ifcond.getRegisterA)
-        val target = Placeholder(context.instrs(offsetToIndex(idx,ifcond.getCodeOffset)))
+        val target = new Target().setStmt(Placeholder(context.instrs(offsetToIndex(idx,ifcond.getCodeOffset))))
         If(CondBinExp(test,BinOp.<=,IntegerConstant(0)),target)
       case Opcode.AGET =>
         val get = instr.asInstanceOf[DexBackedInstruction23x]
@@ -1299,7 +1299,7 @@ class DexlibDexTransformer {
       val rawStmts = instrs.zipWithIndex.map{instructionTransform}
 
       def postProcess(stmts: List[Stmt]) = {
-        val firstPassMap : Map[Stmt,Stmt] = instrs.map{Placeholder}.zip(rawStmts).toMap
+        val firstPassMap : Map[Stmt,Stmt] = instrs.map{Placeholder}.zip(stmts).toMap
         val firstPass = CommonILHelper.stmtSubstitute(firstPassMap)(stmts)
         val secondPassMap = stmts.zip(firstPass).toMap
         val secondPass = CommonILHelper.stmtSubstitute(secondPassMap)(firstPass)
@@ -1313,7 +1313,7 @@ class DexlibDexTransformer {
       val startingRegister = regCount - paramSizeList.reduceOption{_+_}.getOrElse(0)
       val thisStmts =
         if(!isStatic) List(Assign(getRegVar(startingRegister-1).setType(Type.RefType(className)),This.setType(Type.RefType(className))))
-        else List.empty[Stmt]
+        else List.empty[CoreStmt]
       val paramStmts = paramSizeList.zip(params).foldLeft(thisStmts, startingRegister, 0) {
         case ((stmt,regN,count), (size,paramTy)) =>
           val regVar = getRegVar(regN).setType(paramTy)

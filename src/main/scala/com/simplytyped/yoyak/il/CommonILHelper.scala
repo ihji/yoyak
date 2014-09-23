@@ -1,6 +1,5 @@
 package com.simplytyped.yoyak.il
 
-import com.simplytyped.yoyak.il.CommonIL.Statement.Stmt.StmtCopier
 import com.simplytyped.yoyak.il.CommonIL.Statement._
 import com.simplytyped.yoyak.il.CommonIL.Type._
 
@@ -27,20 +26,19 @@ object CommonILHelper {
     def substitute(stmt: Stmt) : Stmt = {
       val srcOpt = map.get(stmt)
       if(srcOpt.nonEmpty) srcOpt.get
-      else stmt match {
-        case block@Block(innerStmts) =>
-          val translated = stmtSubstitute(map)(innerStmts)
-          StmtCopier.Block(block, translated)
-        case switch@Switch(v, keys, targets) =>
-          val translated = stmtSubstitute(map)(targets)
-          StmtCopier.Switch(switch, v, keys, translated)
-        case iff@If(cond, target) =>
-          val translated = substitute(target)
-          StmtCopier.If(iff,cond,translated)
-        case goto@Goto(target) =>
-          val translated = substitute(target)
-          StmtCopier.Goto(goto,translated)
-        case _ => stmt
+      else {
+        stmt match {
+          case block : Block =>
+            block.stmts.map{substitute}
+          case switch : Switch =>
+            switch.targets.map{_.map{substitute}}
+          case iff : If =>
+            iff.target.map{substitute}
+          case goto : Goto =>
+            goto.target.map{substitute}
+          case _ =>
+        }
+        stmt
       }
     }
     stmts.map{substitute}
@@ -52,7 +50,7 @@ object CommonILHelper {
     var map = Map.empty[Stmt,CoreStmt]
     val resultStmts = stmts.flatMap {
       case block@Block(innerStmts) =>
-        val output = expandStmts(innerStmts)
+        val output = expandStmts(innerStmts.getStmts)
         map += (block->output.head)
         output
       case switch : Switch =>

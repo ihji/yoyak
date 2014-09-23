@@ -8,3 +8,7 @@ case class CFG(nodes: Set[BasicBlock], edges: Set[BasicEdge], nexts: Map[BasicBl
     CFG(nodes,edges,nexts,prevs)
   }
 }
+
+object CFG {
+  val empty = CFG(Set.empty,Set.empty,Map.empty,Map.empty)
+}

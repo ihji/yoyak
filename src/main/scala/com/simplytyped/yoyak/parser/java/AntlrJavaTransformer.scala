@@ -41,7 +41,7 @@ class AntlrJavaTransformer {
     val ty = typeContextToType(formalParam.`type`())
     Statement.Identity(Local(name.getText).setType(ty),Param(idx)).setPos(getPositionFromToken(name.getSymbol))
   }
-  def blockStatementContextToStmt(blockStmtCtx: BlockStatementContext) : List[Stmt] = {
+  def blockStatementContextToStmt(blockStmtCtx: BlockStatementContext) : List[CoreStmt] = {
     List.empty
   }
   def methodDefToMethod(className: ClassName, methodDef: MethodDeclarationContext) : Option[Method] = {
