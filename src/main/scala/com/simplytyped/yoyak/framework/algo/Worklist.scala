@@ -1,4 +1,4 @@
-package com.simplytyped.yoyak.framework
+package com.simplytyped.yoyak.framework.algo
 
 class Worklist[E] {
   var list = Vector.empty[E]

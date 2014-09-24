@@ -1,11 +1,10 @@
-package com.simplytyped.yoyak.framework
+package com.simplytyped.yoyak.framework.algo
 
 import com.simplytyped.yoyak.framework.domain.LatticeOps
 import com.simplytyped.yoyak.framework.semantics.AbstractTransferable
-import com.simplytyped.yoyak.il.cfg.{BasicBlock, CFG}
+import com.simplytyped.yoyak.il.cfg.BasicBlock
 
 trait WorklistIteration[D] {
-  val cfg : CFG
   implicit val ops : LatticeOps[D]
   implicit val absTransfer : AbstractTransferable[D]
 
@@ -16,7 +15,7 @@ trait WorklistIteration[D] {
     val output = stmts.foldLeft(input){absTransfer.transfer}
     output
   }
-  def computeFixedPoint(input: D, startNodes: List[BasicBlock], getNextWork: BasicBlock => Set[BasicBlock]) : D = {
+  def computeFixedPoint(input: D, startNodes: List[BasicBlock], getNextWork: BasicBlock => Seq[BasicBlock]) : D = {
     assert(startNodes.size > 0)
     worklist.add(startNodes:_*)
     var next = input
@@ -25,7 +24,7 @@ trait WorklistIteration[D] {
       val prev = next
       next = work(prev,bb)
       if(!ops.<=(next,prev)) {
-        val nextWork = cfg.getNexts(bb).toList
+        val nextWork = getNextWork(bb)
         worklist.add(nextWork:_*)
       }
     }
