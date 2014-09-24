@@ -3,30 +3,30 @@ package com.simplytyped.yoyak.framework.semantics
 import com.simplytyped.yoyak.il.CommonIL.Statement._
 
 trait AbstractTransferable[D] {
-  def transfer(stmt: CoreStmt, dom: D) : D = {
+  def transfer(input: D, stmt: CoreStmt) : D = {
     stmt match {
-      case s: Identity => transferIdentity(s, dom)
-      case s: Assign => transferAssign(s, dom)
-      case s: Invoke => transferInvoke(s, dom)
-      case s: If => transferIf(s, dom)
-      case s: Assume => transferAssume(s, dom)
-      case s: Return => transferReturn(s, dom)
-      case s: Nop => transferNop(s, dom)
-      case s: Goto => transferGoto(s, dom)
-      case s: EnterMonitor => transferEnterMonitor(s, dom)
-      case s: ExitMonitor => transferExitMonitor(s, dom)
-      case s: Throw => transferThrow(s, dom)
+      case s: Identity => transferIdentity(s, input)
+      case s: Assign => transferAssign(s, input)
+      case s: Invoke => transferInvoke(s, input)
+      case s: If => transferIf(s, input)
+      case s: Assume => transferAssume(s, input)
+      case s: Return => transferReturn(s, input)
+      case s: Nop => transferNop(s, input)
+      case s: Goto => transferGoto(s, input)
+      case s: EnterMonitor => transferEnterMonitor(s, input)
+      case s: ExitMonitor => transferExitMonitor(s, input)
+      case s: Throw => transferThrow(s, input)
     }
   }
-  def transferIdentity(stmt: Identity, dom: D) : D
-  def transferAssign(stmt: Assign, dom: D) : D
-  def transferInvoke(stmt: Invoke, dom: D) : D
-  def transferIf(stmt: If, dom: D) : D
-  def transferAssume(stmt: Assume, dom: D) : D
-  def transferReturn(stmt: Return, dom: D) : D
-  def transferNop(stmt: Nop, dom: D) : D
-  def transferGoto(stmt: Goto, dom: D) : D
-  def transferEnterMonitor(stmt: EnterMonitor, dom: D) : D
-  def transferExitMonitor(stmt: ExitMonitor, dom: D) : D
-  def transferThrow(stmt: Throw, dom: D) : D
+  protected def transferIdentity(stmt: Identity, input: D) : D
+  protected def transferAssign(stmt: Assign, input: D) : D
+  protected def transferInvoke(stmt: Invoke, input: D) : D
+  protected def transferIf(stmt: If, input: D) : D
+  protected def transferAssume(stmt: Assume, input: D) : D
+  protected def transferReturn(stmt: Return, input: D) : D
+  protected def transferNop(stmt: Nop, input: D) : D
+  protected def transferGoto(stmt: Goto, input: D) : D
+  protected def transferEnterMonitor(stmt: EnterMonitor, input: D) : D
+  protected def transferExitMonitor(stmt: ExitMonitor, input: D) : D
+  protected def transferThrow(stmt: Throw, input: D) : D
 }
