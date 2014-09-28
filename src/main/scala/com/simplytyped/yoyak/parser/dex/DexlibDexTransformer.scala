@@ -1355,7 +1355,7 @@ class DexlibDexTransformer {
     }._1
   }
   private def getRegVar(id: Int) = Local("$reg"+id)
-  private val methodReturnVar = Local("$mres")
+  private def methodReturnVar() = Local("$mres")
 }
 
 object DexlibDexTransformer {

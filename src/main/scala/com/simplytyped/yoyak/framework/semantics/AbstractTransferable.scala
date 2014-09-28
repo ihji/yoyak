@@ -18,15 +18,15 @@ trait AbstractTransferable[D] {
       case s: Throw => transferThrow(s, input)
     }
   }
-  protected def transferIdentity(stmt: Identity, input: D) : D
-  protected def transferAssign(stmt: Assign, input: D) : D
-  protected def transferInvoke(stmt: Invoke, input: D) : D
-  protected def transferIf(stmt: If, input: D) : D
-  protected def transferAssume(stmt: Assume, input: D) : D
-  protected def transferReturn(stmt: Return, input: D) : D
-  protected def transferNop(stmt: Nop, input: D) : D
-  protected def transferGoto(stmt: Goto, input: D) : D
-  protected def transferEnterMonitor(stmt: EnterMonitor, input: D) : D
-  protected def transferExitMonitor(stmt: ExitMonitor, input: D) : D
-  protected def transferThrow(stmt: Throw, input: D) : D
+  protected def transferIdentity(stmt: Identity, input: D) : D = input
+  protected def transferAssign(stmt: Assign, input: D) : D = input
+  protected def transferInvoke(stmt: Invoke, input: D) : D = input
+  protected def transferIf(stmt: If, input: D) : D = input
+  protected def transferAssume(stmt: Assume, input: D) : D = input
+  protected def transferReturn(stmt: Return, input: D) : D = input
+  protected def transferNop(stmt: Nop, input: D) : D = input
+  protected def transferGoto(stmt: Goto, input: D) : D = input
+  protected def transferEnterMonitor(stmt: EnterMonitor, input: D) : D = input
+  protected def transferExitMonitor(stmt: ExitMonitor, input: D) : D = input
+  protected def transferThrow(stmt: Throw, input: D) : D = input
 }

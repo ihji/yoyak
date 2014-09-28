@@ -3,11 +3,17 @@ package com.simplytyped.yoyak.framework.domain
 class MapDom[K,V](implicit val valueOps: LatticeOps[V]) {
   private var rawMap = Map.empty[K,V]
 
-  private def add(kv: (K,V)) { if(!valueOps.<=(kv._2,valueOps.bottom)) rawMap += (kv._1 -> kv._2) }
-  def update(kv: (K,V)) : MapDom[K,V] = { add(kv); this }
-  def weakUpdate(kv: (K,V)) : MapDom[K,V] = {
-    add(kv._1 -> valueOps.\/(get(kv._1),kv._2)); this
+  override def toString = rawMap.mkString("\n")
+
+  private def add(kv: (K,V)) : MapDom[K,V] = {
+    if(!valueOps.<=(kv._2,valueOps.bottom)) {
+      val newDom = new MapDom[K,V]
+      newDom.rawMap = rawMap + (kv._1 -> kv._2)
+      newDom
+    } else this
   }
+  def update(kv: (K,V)) : MapDom[K,V] = add(kv)
+  def weakUpdate(kv: (K,V)) : MapDom[K,V] = add(kv._1 -> valueOps.\/(get(kv._1),kv._2))
   def get(k: K) : V = rawMap.getOrElse(k,valueOps.bottom)
 
   def foldLeft[T](init: T)(f: (T,(K,V)) => T) : T = rawMap.foldLeft(init)(f)

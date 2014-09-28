@@ -6,6 +6,7 @@ import com.simplytyped.yoyak.il.cfg.BasicBlock.CoreStatementContainer
 
 case class BasicBlock(data: CoreStatementContainer, id: Int) extends NodeLike[BasicBlock] {
   type D = CoreStatementContainer
+  override def toString = s"BasicBlock($id)"
 }
 
 object BasicBlock {

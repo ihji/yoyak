@@ -93,7 +93,7 @@ object CommonIL {
 
     case class Assign(lv: Value.Loc, rv: Value.t) extends CfgStmt
 
-    case class Invoke(ret: Option[Value.Loc], callee: Type.InvokeType) extends CfgStmt
+    case class Invoke(ret: Option[Value.Local], callee: Type.InvokeType) extends CfgStmt
 
     case class Assume(cond: Value.CondBinExp) extends CfgStmt
 
@@ -132,26 +132,29 @@ object CommonIL {
         def Placeholder(ph: Placeholder, x: AnyRef) =
           new Placeholder(x).copyAttr(ph)
 
+        def If(i: If, cond: Value.CondBinExp, target: Target) =
+          new If(cond,target).copyAttr(i)
+
+        def Goto(goto: Goto, target: Target) =
+          new Goto(target).copyAttr(goto)
+
         def Identity(iden: Identity, lv: Value.Local, rv: Value.Param) =
           new Identity(lv,rv).copyAttr(iden)
 
         def Assign(assign: Assign, lv: Value.Loc, rv: Value.t) =
           new Assign(lv,rv).copyAttr(assign)
 
-        def Invoke(invoke: Invoke, ret: Option[Value.Loc], callee: Type.InvokeType) =
+        def Invoke(invoke: Invoke, ret: Option[Value.Local], callee: Type.InvokeType) =
           new Invoke(ret,callee).copyAttr(invoke)
 
-        def If(i: If, cond: Value.CondBinExp, target: Target) =
-          new If(cond,target).copyAttr(i)
+        def Assume(assume: Assume, cond: Value.CondBinExp) =
+          new Assume(cond).copyAttr(assume)
 
         def Return(ret: Return, v: Option[Value.t]) =
           new Return(v).copyAttr(ret)
 
         def Nop(nop: Nop) =
           new Nop().copyAttr(nop)
-
-        def Goto(goto: Goto, target: Target) =
-          new Goto(target).copyAttr(goto)
 
         def EnterMonitor(mon: EnterMonitor, v: Value.Loc) =
           new EnterMonitor(v).copyAttr(mon)
@@ -198,6 +201,46 @@ object CommonIL {
 
     object CommonTypes {
       val String = RefType(ClassName("java.lang.String"))
+    }
+    def lub(ty1: ValueType, ty2: ValueType) : ValueType = {
+      (ty1,ty2) match {
+        case (IntegerType,IntegerType) => IntegerType
+        case (IntegerType,UnknownType) => IntegerType
+        case (UnknownType,IntegerType) => IntegerType
+        case (LongType,LongType) => LongType
+        case (LongType,UnknownType) => LongType
+        case (UnknownType,LongType) => LongType
+        case (FloatType,FloatType) => FloatType
+        case (FloatType,UnknownType) => FloatType
+        case (UnknownType,FloatType) => FloatType
+        case (DoubleType,DoubleType) => DoubleType
+        case (DoubleType,UnknownType) => DoubleType
+        case (UnknownType,DoubleType) => DoubleType
+        case (CharType,CharType) => CharType
+        case (CharType,UnknownType) => CharType
+        case (UnknownType,CharType) => CharType
+        case (ByteType,ByteType) => ByteType
+        case (ByteType,UnknownType) => ByteType
+        case (UnknownType,ByteType) => ByteType
+        case (BooleanType,BooleanType) => BooleanType
+        case (BooleanType,UnknownType) => BooleanType
+        case (UnknownType,BooleanType) => BooleanType
+        case (ShortType,ShortType) => ShortType
+        case (ShortType,UnknownType) => ShortType
+        case (UnknownType,ShortType) => ShortType
+        case (NullType,x) => x
+        case (x,NullType) => x
+        case (VoidType,VoidType) => VoidType
+        case (VoidType,UnknownType) => VoidType
+        case (UnknownType,VoidType) => VoidType
+        case (ref1@RefType(_),ref2@RefType(_)) => ref1 // TODO: need to consider class hierarchy
+        case (ref@RefType(_),UnknownType) => ref
+        case (UnknownType,ref@RefType(_)) => ref
+        case (arr1@ArrayType(_,_),arr2@ArrayType(_,_)) => arr1 // TODO: need to consider class hierarchy
+        case (arr@ArrayType(_,_),UnknownType) => arr
+        case (UnknownType,arr@ArrayType(_,_)) => arr
+        case _ => UnknownType
+      }
     }
   }
 

@@ -15,7 +15,8 @@ object BackwardAnalysis {
     }
   }
 
-  class FlowSensitiveBackwardAnalysis[D](cfg: CFG)(implicit val ops: LatticeOps[D], val mapDomOps: LatticeOps[MapDom[BasicBlock,D]], val absTransfer: AbstractTransferable[D]) extends FlowSensitiveWorklistIteration[D] {
+  class FlowSensitiveBackwardAnalysis[D](cfg: CFG)(implicit val ops: LatticeOps[D], val absTransfer: AbstractTransferable[D]) extends FlowSensitiveWorklistIteration[D] {
+    implicit val mapDomOps: LatticeOps[MapDom[BasicBlock,D]] = MapDom.ops[BasicBlock,D]
     def compute : MapDom[BasicBlock,D] = {
       val startNodes = cfg.nodes.filter { n => cfg.getNexts(n).isEmpty}.toList
       val getPrevBlocks = { bb: BasicBlock => cfg.getNexts(bb).toList}
