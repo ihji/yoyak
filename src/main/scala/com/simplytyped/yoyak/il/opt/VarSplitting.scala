@@ -11,7 +11,7 @@ import scala.collection.mutable.{Set => MSet}
 
 class VarSplitting {
   var nameCounter = 0
-  private def getNewLocal() = {nameCounter += 1; Local(s"var$nameCounter")}
+  private def getNewLocal() = {nameCounter += 1; Local("$v"+nameCounter)}
 
   var renameMap = Map.empty[CoreStmt,Local]
   private def generateRenameMap(defMap: MapDom[BasicBlock,Map[Local,Set[CoreStmt]]]) {
