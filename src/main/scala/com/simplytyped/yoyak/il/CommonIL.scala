@@ -110,14 +110,14 @@ object CommonIL {
     class Target {
       private var elem : Stmt = _
       def getStmt : Stmt = elem
-      private[il] def setStmt(stmt: Stmt) : Target = {elem = stmt; this}
+      def setStmt(stmt: Stmt) : Target = {elem = stmt; this}
       def map(f: Stmt=>Stmt) : Target =  {elem = f(elem); this}
     }
 
     class StatementContainer {
       private var stmts : List[Stmt] = List.empty
       def getStmts : List[Stmt] = stmts
-      private[il] def setStmts(s : List[Stmt]) :StatementContainer = {stmts = s; this}
+      def setStmts(s : List[Stmt]) :StatementContainer = {stmts = s; this}
       def map(f: Stmt=>Stmt) : StatementContainer = {stmts = stmts.map{f}; this}
     }
 

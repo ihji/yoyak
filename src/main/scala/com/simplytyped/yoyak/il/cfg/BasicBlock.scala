@@ -14,7 +14,7 @@ object BasicBlock {
   class CoreStatementContainer {
     private var stmts : List[CoreStmt] = List.empty
     def getStmts : List[CoreStmt] = stmts
-    private[il] def setStmts(s : List[CoreStmt]) : CoreStatementContainer = {stmts = s; this}
+    def setStmts(s : List[CoreStmt]) : CoreStatementContainer = {stmts = s; this}
   }
   def apply(stmts: List[CoreStmt]) : BasicBlock = {
     idCounter += 1
