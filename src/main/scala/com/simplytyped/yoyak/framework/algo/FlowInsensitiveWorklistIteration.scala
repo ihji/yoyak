@@ -16,7 +16,9 @@ trait FlowInsensitiveWorklistIteration[D] extends Iteration[D] {
       val bb = worklist.pop().get
       val prev = next
       next = work(prev,bb)
-      if(!ops.<=(next,prev)) {
+      val isStableOpt = ops.<=(next,prev)
+      if(isStableOpt.isEmpty) println("error: abs. transfer func. is not distributive") // XXX: abstract transfer function is not distributive. should report this error.
+      if(!isStableOpt.get) {
         val nextWork = getNextBlocks(bb)
         worklist.add(nextWork:_*)
       }

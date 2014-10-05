@@ -26,7 +26,9 @@ trait FlowSensitiveWorklistIteration[D] extends Iteration[D] {
       val prev = getInput(map,prevBlocks)
       val next = work(prev,bb)
       val nextMap = map.update(bb->next)
-      if(!mapDomOps.<=(nextMap,map)) {
+      val isStableOpt = mapDomOps.<=(nextMap,map)
+      if(isStableOpt.isEmpty) println("error: abs. transfer func. is not distributive") // XXX: abstract transfer function is not distributive. should report this error.
+      if(!isStableOpt.get) {
         val nextWork = getNextBlocks(bb)
         worklist.add(nextWork:_*)
         map = nextMap

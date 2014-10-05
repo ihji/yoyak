@@ -8,39 +8,37 @@ import com.simplytyped.yoyak.il.CommonIL.Value.Local
 import com.simplytyped.yoyak.il.cfg.{BasicBlock, CFG}
 
 class DefReachability {
-  def run(cfg: CFG) : MapDom[BasicBlock,Map[Local,Set[CoreStmt]]] = {
+  def run(cfg: CFG) : MapDom[BasicBlock,MapDom[Local,Set[CoreStmt]]] = {
     import com.simplytyped.yoyak.il.opt.analysis.DefReachability._
-    val analysis = new FlowSensitiveForwardAnalysis[Map[Local,Set[CoreStmt]]](cfg)
+    val analysis = new FlowSensitiveForwardAnalysis[MapDom[Local,Set[CoreStmt]]](cfg)
     val output = analysis.compute
     output
   }
 }
 
 object DefReachability {
-  implicit val ops : LatticeOps[Map[Local,Set[CoreStmt]]] = new LatticeOps[Map[Local,Set[CoreStmt]]] {
-    override def <=(lhs: Map[Local, Set[CoreStmt]], rhs: Map[Local, Set[CoreStmt]]): Boolean = {
-      lhs.forall{case (k,v) => v.subsetOf(rhs.getOrElse(k,Set.empty[CoreStmt]))}
-    }
+  implicit val valueOps : LatticeOps[Set[CoreStmt]] = new LatticeOps[Set[CoreStmt]] {
+    override def \/(lhs: Set[CoreStmt], rhs: Set[CoreStmt]): Set[CoreStmt] = lhs ++ rhs
 
-    override def \/(lhs: Map[Local, Set[CoreStmt]], rhs: Map[Local, Set[CoreStmt]]): Map[Local, Set[CoreStmt]] = {
-      rhs.foldLeft(lhs) {
-        case (m,(k,v)) => m + (k -> (m.getOrElse(k,Set.empty[CoreStmt]) ++ v))
-      }
-    }
+    override val bottom: Set[CoreStmt] = Set.empty[CoreStmt]
 
-    override val bottom: Map[Local, Set[CoreStmt]] = Map.empty
+    override def <=(lhs: Set[CoreStmt], rhs: Set[CoreStmt]): Option[Boolean] =
+      if(lhs subsetOf rhs) Some(true)
+      else if(rhs subsetOf lhs) Some(false)
+      else None
   }
-  implicit val absTransfer : AbstractTransferable[Map[Local,Set[CoreStmt]]] = new AbstractTransferable[Map[Local, Set[CoreStmt]]] {
+  implicit val ops : LatticeOps[MapDom[Local,Set[CoreStmt]]] = MapDom.ops[Local,Set[CoreStmt]]
+  implicit val absTransfer : AbstractTransferable[MapDom[Local,Set[CoreStmt]]] = new AbstractTransferable[MapDom[Local, Set[CoreStmt]]] {
 
-    override protected def transferInvoke(stmt: Invoke, input: Map[Local, Set[CoreStmt]]): Map[Local, Set[CoreStmt]] = {
-      if(stmt.ret.nonEmpty) input + (stmt.ret.get -> Set(stmt))
+    override protected def transferInvoke(stmt: Invoke, input: MapDom[Local, Set[CoreStmt]]): MapDom[Local, Set[CoreStmt]] = {
+      if(stmt.ret.nonEmpty) input.update(stmt.ret.get -> Set(stmt))
       else input
     }
 
-    override protected def transferIdentity(stmt: Identity, input: Map[Local, Set[CoreStmt]]): Map[Local, Set[CoreStmt]] = input + (stmt.lv -> Set(stmt))
+    override protected def transferIdentity(stmt: Identity, input: MapDom[Local, Set[CoreStmt]]): MapDom[Local, Set[CoreStmt]] = input.update(stmt.lv -> Set(stmt))
 
-    override protected def transferAssign(stmt: Assign, input: Map[Local, Set[CoreStmt]]): Map[Local, Set[CoreStmt]] = {
-      if(stmt.lv.isInstanceOf[Local]) input + (stmt.lv.asInstanceOf[Local] -> Set(stmt))
+    override protected def transferAssign(stmt: Assign, input: MapDom[Local, Set[CoreStmt]]): MapDom[Local, Set[CoreStmt]] = {
+      if(stmt.lv.isInstanceOf[Local]) input.update(stmt.lv.asInstanceOf[Local] -> Set(stmt))
       else input
     }
   }

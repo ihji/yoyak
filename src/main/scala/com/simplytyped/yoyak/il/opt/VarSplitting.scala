@@ -14,7 +14,7 @@ class VarSplitting {
   private def getNewLocal() = {nameCounter += 1; Local("$v"+nameCounter)}
 
   var renameMap = Map.empty[CoreStmt,Local]
-  private def generateRenameMap(defMap: MapDom[BasicBlock,Map[Local,Set[CoreStmt]]]) {
+  private def generateRenameMap(defMap: MapDom[BasicBlock,MapDom[Local,Set[CoreStmt]]]) {
     val defGroup = defMap.foldLeft(Map.empty[CoreStmt,MSet[CoreStmt]]) {
       case (defGroupMap,(_,m)) => m.foldLeft(defGroupMap) {
         case (defGroupMap,(_,stmtSet)) =>
@@ -33,11 +33,11 @@ class VarSplitting {
     }.toMap
     this.renameMap = renameMap
   }
-  private def findNewLocal(defMap: Map[Local,Set[CoreStmt]])(old: Local) : Local = {
+  private def findNewLocal(defMap: MapDom[Local,Set[CoreStmt]])(old: Local) : Local = {
     val stmts = defMap.get(old)
     if(stmts.isEmpty) old
     else {
-      val stmt = stmts.get.head
+      val stmt = stmts.head
       val newLocalOpt = renameMap.get(stmt)
       if(newLocalOpt.nonEmpty) newLocalOpt.get.setType(Type.lub(old.ty,newLocalOpt.get.ty))
       else {
@@ -48,7 +48,7 @@ class VarSplitting {
       }
     }
   }
-  private def renameLocal(defMap: Map[Local,Set[CoreStmt]])(stmt: CoreStmt) : (Map[Local,Set[CoreStmt]],CoreStmt) = {
+  private def renameLocal(defMap: MapDom[Local,Set[CoreStmt]])(stmt: CoreStmt) : (MapDom[Local,Set[CoreStmt]],CoreStmt) = {
     import DefReachability.absTransfer
     val newStmt1 = CommonILHelper.substituteLocalUse(findNewLocal(defMap))(stmt)
     val nextMap = absTransfer.transfer(defMap,stmt)
