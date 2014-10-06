@@ -60,33 +60,40 @@ object MapDom {
         if(lhs.keySet != rhs.keySet) None
         else {
           // lhs.size != 0 && rhs.size != 0
-          val (k,v) = lhs.head
-          val v2 = rhs.get(k)
-          val initOrder = valueOps.<=(v,v2)
-          if(initOrder.isEmpty) None
+          // find initial order
+          val lhsIter = lhs.iterator
+          var initOrderLR : Option[Boolean] = Some(true)
+          var initOrderRL : Option[Boolean] = Some(true)
+          while(initOrderLR.nonEmpty && initOrderLR.get && initOrderRL.nonEmpty && initOrderRL.get && lhsIter.hasNext) {
+            val (k, lv) = lhsIter.next()
+            val rv = rhs.get(k)
+            initOrderLR = valueOps.<=(lv, rv)
+            initOrderRL = valueOps.<=(rv, lv)
+          }
+          if(initOrderLR.nonEmpty && initOrderLR.get && initOrderRL.nonEmpty && initOrderRL.get && !lhsIter.hasNext) Some(true) // equal
+          else if(initOrderLR.isEmpty || initOrderRL.isEmpty) None
           else {
-            if(initOrder.get) {
+            // assume both initOrderLR and initOrderRL are not Some(false). logically impossible case: lv > rv && lv < rv
+            if(initOrderLR.get) {
               // assume: lhs <= rhs
-              // this part is copied from above
-              val lhsIter = lhs.iterator
+              // this logic is copied from above
               var flag = true
               while(flag && lhsIter.hasNext) {
-                val (k,v) = lhsIter.next()
+                val (k,lValue) = lhsIter.next()
                 val rValue = rhs.get(k)
-                val order = valueOps.<=(v,rValue)
+                val order = valueOps.<=(lValue,rValue)
                 if(order.isEmpty || !order.get) flag = false
               }
               if(flag) Some(true) else None
             }
             else {
-              // assume: lhs > rhs
-              // this part is copied from above
-              val rhsIter = rhs.iterator
+              // assume: lhs >= rhs
+              // this logic is copied from above
               var flag = true
-              while(flag && rhsIter.hasNext) {
-                val (k,v) = rhsIter.next()
-                val lValue = lhs.get(k)
-                val order = valueOps.<=(v,lValue)
+              while(flag && lhsIter.hasNext) {
+                val (k,lValue) = lhsIter.next()
+                val rValue = rhs.get(k)
+                val order = valueOps.<=(rValue,lValue)
                 if(order.isEmpty || !order.get) flag = false
               }
               if(flag) Some(false) else None

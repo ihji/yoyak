@@ -19,6 +19,14 @@ class MapDomTest extends FunSuite with Matchers {
 
     ordering.<=(map1,map2) should be (Some(false))
   }
+  test("MapDom ordering (<=) test: lhs is bigger 2") {
+    import MapDomTest.ops
+    val map1 = MapDom.empty[Int,Set[Int]].update(1->Set(1,2,3)).update(2->Set(1,3,4))
+    val map2 = MapDom.empty[Int,Set[Int]].update(1->Set(1,2,3)).update(2->Set(1))
+    val ordering = MapDom.ops[Int,Set[Int]]
+
+    ordering.<=(map1,map2) should be (Some(false))
+  }
   test("MapDom ordering (<=) test: rhs is bigger") {
     import MapDomTest.ops
     val map1 = MapDom.empty[Int,Set[Int]].update(1->Set(1,2,3))
