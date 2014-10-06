@@ -6,18 +6,24 @@ import com.simplytyped.yoyak.il.CommonIL.Value._
 
 class MemDom[A : ArithmeticOps, D : ParOrdOps] {
   private var rawMap = MapDom.empty[AbsAddr,AbsValue[A,D]](AbsValue.ops[A,D])
-  def update(kv: (Loc,AbsValue[A,D])) : MemDom[A,D] = {
+  def alloc(loc: Loc) : MemDom[A,D] = {
+    val newObj = new AbsObject[A,D]
+    val newAddr = getNewAddr()
+    val newRawMap = updateRawMap(rawMap,loc->newAddr.toAbsRef).update(newAddr->newObj)
+    builder(newRawMap)
+  }
+  private def updateRawMap(map: MapDom[AbsAddr,AbsValue[A,D]], kv: (Loc,AbsValue[A,D])) : MapDom[AbsAddr,AbsValue[A,D]] = {
     val (loc,v) = kv
-    val newRawMap = loc match {
-      case Local(id) => rawMap.update(AbsAddr(id)->v)
+    loc match {
+      case Local(id) => map.update(AbsAddr(id)->v)
       case ArrayRef(base,index) => ???
       case InstanceFieldRef(base,field) =>
         val objRef = get(base)
         objRef match {
           case AbsRef(ids) =>
-            ids.foldLeft(rawMap) {
+            ids.foldLeft(map) {
               (m,i) =>
-                val obj = rawMap.get(AbsAddr(i))
+                val obj = map.get(AbsAddr(i))
                 val newObj = obj match {
                   case obj: AbsObject[A,D] =>
                     if(ids.size == 1) obj.updateField(field->v)
@@ -26,11 +32,11 @@ class MemDom[A : ArithmeticOps, D : ParOrdOps] {
                 }
                 m.update(AbsAddr(i)->newObj)
             }
-          case _ => rawMap // error case: should be reported
+          case _ => map // error case: should be reported
         }
       case StaticFieldRef(clazz,field) =>
         val staticAddr = getStaticAddr(clazz)
-        val staticObj = rawMap.get(staticAddr)
+        val staticObj = map.get(staticAddr)
         val newStaticObj = staticObj match {
           case obj: AbsObject[A,D] =>
             obj.weakUpdateField(field->v)
@@ -38,11 +44,12 @@ class MemDom[A : ArithmeticOps, D : ParOrdOps] {
             val obj = new AbsObject[A,D]
             obj.updateField(field->v)
         }
-        rawMap.update(staticAddr->newStaticObj)
+        map.update(staticAddr->newStaticObj)
     }
-    val newMemDom = new MemDom[A,D]
-    newMemDom.rawMap = newRawMap
-    newMemDom
+  }
+  def update(kv: (Loc,AbsValue[A,D])) : MemDom[A,D] = {
+    val newRawMap = updateRawMap(rawMap,kv)
+    builder(newRawMap)
   }
   def get(k: Loc) : AbsValue[A,D] =
     k match {
@@ -71,12 +78,20 @@ class MemDom[A : ArithmeticOps, D : ParOrdOps] {
           case _ => AbsBottom
         }
     }
+  private def builder(rawMap: MapDom[AbsAddr,AbsValue[A,D]]) : MemDom[A,D] = {
+    val newMemDom = new MemDom[A,D]
+    newMemDom.rawMap = rawMap
+    newMemDom
+  }
 }
 
 object MemDom {
   def empty[A : ArithmeticOps, D : ParOrdOps] = new MemDom[A,D]
 
   def getStaticAddr(className: ClassName) : AbsAddr = AbsAddr(s"__static_obj_${ClassName.toString(className)}")
+
+  var addrIdx = 0
+  def getNewAddr() : AbsAddr = {addrIdx += 1; AbsAddr(s"__dynamic_obj_$addrIdx")}
 
   def ops[A : ArithmeticOps, D : ParOrdOps] = new LatticeOps[MemDom[A,D]] {
     implicit val absValueOps = AbsValue.ops[A,D]
@@ -94,7 +109,9 @@ object MemDom {
     override val bottom: MemDom[A,D] = MemDom.empty[A,D]
   }
 
-  case class AbsAddr(id: String)
+  case class AbsAddr(id: String) {
+    def toAbsRef : AbsRef = AbsRef(Set(id))
+  }
 
   abstract class AbsValue[+A,+D]
   class AbsObject[A : ArithmeticOps, D : ParOrdOps] extends AbsValue {
@@ -132,6 +149,7 @@ object MemDom {
   object AbsValue {
     def ops[A : ArithmeticOps, D : ParOrdOps] = new LatticeOps[AbsValue[A,D]] {
       val boxOps = implicitly[ParOrdOps[D]]
+      val arithOps = implicitly[ArithmeticOps[A]]
       override def <=(lhs: AbsValue[A,D], rhs: AbsValue[A,D]): Option[Boolean] = {
         (lhs,rhs) match {
           case (AbsBottom,_) => Some(true)
@@ -143,6 +161,7 @@ object MemDom {
             else if(id2 subsetOf id1) Some(false)
             else None
           case (AbsBox(data1),AbsBox(data2)) => boxOps.<=(data1,data2)
+          case (AbsArith(data1),AbsArith(data2)) => arithOps.<=(data1,data2)
           case (x,y) if x.isInstanceOf[AbsObject[A,D]] && y.isInstanceOf[AbsObject[A,D]] =>
             x.asInstanceOf[AbsObject[A,D]] <= y.asInstanceOf[AbsObject[A,D]]
           case (_,_) => None
@@ -160,6 +179,11 @@ object MemDom {
             val order = boxOps.<=(data1,data2)
             if(order.nonEmpty) {
               if(order.get) AbsBox(data2) else AbsBox(data1)
+            } else AbsTop
+          case (AbsArith(data1),AbsArith(data2)) =>
+            val order = arithOps.<=(data1,data2)
+            if(order.nonEmpty) {
+              if(order.get) AbsArith(data2) else AbsArith(data1)
             } else AbsTop
           case (x,y) if x.isInstanceOf[AbsObject[A,D]] && y.isInstanceOf[AbsObject[A,D]] =>
             x.asInstanceOf[AbsObject[A,D]] \/ y.asInstanceOf[AbsObject[A,D]]
