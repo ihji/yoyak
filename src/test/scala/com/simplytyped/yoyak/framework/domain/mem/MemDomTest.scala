@@ -26,6 +26,14 @@ class MemDomTest extends FunSuite with Matchers {
     mem2.get(StaticFieldRef(ClassName("yoyak.Test"),"f")) should be (AbsArith(10))
     mem2.get(StaticFieldRef(ClassName("yoyak.Test"),"g")) should be (AbsBottom)
   }
+  test("add and retrieve things in array") {
+    val mem = MemDom.empty[Int,Set[String]]
+    val mem2 = mem.alloc(Local("x"))
+    val mem3 = mem2.update(ArrayRef(Local("x"),IntegerConstant(1))->AbsArith(10))
+    mem3.get(ArrayRef(Local("x"),IntegerConstant(1))) should be (AbsArith(10))
+    mem3.get(ArrayRef(Local("x"),IntegerConstant(2))) should be (AbsArith(10))
+    // TODO: test weak update. x[0] = 10; x[1] = 20; get x[0]
+  }
 }
 
 object MemDomTest {
