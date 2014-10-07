@@ -1,5 +1,7 @@
 package com.simplytyped.yoyak.framework.domain
 
+import com.simplytyped.yoyak.il.CommonIL.Value.Constant
+
 trait ArithmeticOps[D] extends ParOrdOps[D] {
   def +(lhs: D, rhs: D) : D
   def -(lhs: D, rhs: D) : D
