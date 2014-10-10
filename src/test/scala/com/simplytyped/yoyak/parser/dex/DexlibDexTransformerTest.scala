@@ -1,5 +1,6 @@
 package com.simplytyped.yoyak.parser.dex
 
+import com.simplytyped.yoyak.analysis.StringAnalysis
 import com.simplytyped.yoyak.il.PrettyPrinter
 import com.simplytyped.yoyak.il.cfg.CommonILToCFG
 import com.simplytyped.yoyak.il.opt.VarSplitting
@@ -15,5 +16,7 @@ class DexlibDexTransformerTest extends FunSuite with Matchers {
     val varsplitting = new VarSplitting
     varsplitting.run(cfg)
     println(new PrettyPrinter().toDot(cfg))
+    val analysis = new StringAnalysis(cfg)
+    println(analysis.run())
   }
 }

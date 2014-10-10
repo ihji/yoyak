@@ -10,13 +10,13 @@ trait ArrayJoinModel[A,D,This<:ArrayJoinModel[A,D,This]] extends MemDomLike[A,D,
   implicit val boxedOps : LatticeWithTopOps[D]
 
   val absValueOps = AbsValue.ops[A,D]
-  def updateArray(kv: (ArrayRef,AbsValue[A,D])) : This = {
+  protected def updateArray(kv: (ArrayRef,AbsValue[A,D])) : This = {
     val (arrayref,v) = kv
     val dummyRef = InstanceFieldRef(arrayref.base,arrayFieldName)
     val orig = get(dummyRef)
     update(dummyRef->AbsValue.ops[A,D].\/(orig,v))
   }
-  def getArray(k: ArrayRef) : AbsValue[A,D] = {
+  protected def getArray(k: ArrayRef) : AbsValue[A,D] = {
     get(InstanceFieldRef(k.base,arrayFieldName))
   }
 }
