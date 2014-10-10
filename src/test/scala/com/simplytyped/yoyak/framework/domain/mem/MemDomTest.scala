@@ -32,7 +32,14 @@ class MemDomTest extends FunSuite with Matchers {
     val mem3 = mem2.update(ArrayRef(Local("x"),IntegerConstant(1))->AbsArith(Set(10)))
     mem3.get(ArrayRef(Local("x"),IntegerConstant(1))) should be (AbsArith(Set(10)))
     mem3.get(ArrayRef(Local("x"),IntegerConstant(2))) should be (AbsArith(Set(10)))
-    // TODO: test weak update. x[0] = 10; x[1] = 20; get x[0]
+  }
+  test("add and retrieve things in array with join") {
+    val mem = MemDom.empty[Set[Int],Set[String]]
+    val mem2 = mem.alloc(Local("x"))
+    val mem3 = mem2.update(ArrayRef(Local("x"),IntegerConstant(1))->AbsArith(Set(10)))
+    val mem4 = mem3.update(ArrayRef(Local("x"),IntegerConstant(2))->AbsArith(Set(20)))
+    mem4.get(ArrayRef(Local("x"),IntegerConstant(1))) should be (AbsArith(Set(10,20)))
+    mem4.get(ArrayRef(Local("x"),IntegerConstant(2))) should be (AbsArith(Set(10,20)))
   }
 }
 
@@ -47,7 +54,7 @@ object MemDomTest {
 
     override def bottom: Set[String] = Set.empty[String]
 
-    override def isTop(v: Set[String]): Boolean = ???
+    override def isTop(v: Set[String]): Boolean = false
   }
   implicit val arithOps : ArithmeticOps[Set[Int]] = new ArithmeticOps[Set[Int]] {
     override def +(lhs: Set[Int], rhs: Set[Int]): Set[Int] = ???
@@ -62,7 +69,7 @@ object MemDomTest {
 
     override def unlift[T: Numeric](abs: Set[Int]): Option[Set[T]] = ???
 
-    override def isTop(v: Set[Int]): Boolean = ???
+    override def isTop(v: Set[Int]): Boolean = false
 
     override def bottom: Set[Int] = Set.empty[Int]
 

@@ -1,16 +1,20 @@
 package com.simplytyped.yoyak.framework.domain.mem
 
-import com.simplytyped.yoyak.framework.domain.ArithmeticOps
+import com.simplytyped.yoyak.framework.domain.{LatticeWithTopOps, ArithmeticOps}
 import com.simplytyped.yoyak.framework.domain.mem.MemElems.AbsValue
 import com.simplytyped.yoyak.il.CommonIL.Value.{InstanceFieldRef, ArrayRef}
 import ArrayJoinModel._
 
 trait ArrayJoinModel[A,D,This<:ArrayJoinModel[A,D,This]] extends MemDomLike[A,D,This]{
   implicit val arithOps : ArithmeticOps[A]
+  implicit val boxedOps : LatticeWithTopOps[D]
 
+  val absValueOps = AbsValue.ops[A,D]
   def updateArray(kv: (ArrayRef,AbsValue[A,D])) : This = {
     val (arrayref,v) = kv
-    update(InstanceFieldRef(arrayref.base,arrayFieldName)->v)
+    val dummyRef = InstanceFieldRef(arrayref.base,arrayFieldName)
+    val orig = get(dummyRef)
+    update(dummyRef->AbsValue.ops[A,D].\/(orig,v))
   }
   def getArray(k: ArrayRef) : AbsValue[A,D] = {
     get(InstanceFieldRef(k.base,arrayFieldName))
