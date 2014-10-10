@@ -1,6 +1,6 @@
 package com.simplytyped.yoyak.framework.domain.mem
 
-import com.simplytyped.yoyak.framework.domain.{LatticeOps, MapDom, ParOrdOps, ArithmeticOps}
+import com.simplytyped.yoyak.framework.domain.{LatticeWithTopOps, LatticeOps, MapDom, ArithmeticOps}
 
 object MemElems {
   case class AbsAddr(id: String) {
@@ -8,7 +8,7 @@ object MemElems {
   }
 
   abstract class AbsValue[+A,+D]
-  class AbsObject[A : ArithmeticOps, D : ParOrdOps] extends AbsValue {
+  class AbsObject[A : ArithmeticOps, D : LatticeWithTopOps] extends AbsValue {
     implicit val absValueOps = AbsValue.ops[A,D]
     private var rawFieldMap = MapDom.empty[String,AbsValue[A,D]]
     def \/(that: AbsObject[A,D]) : AbsObject[A,D] = {
@@ -41,8 +41,8 @@ object MemElems {
   case object AbsTop extends AbsValue
 
   object AbsValue {
-    def ops[A : ArithmeticOps, D : ParOrdOps] = new LatticeOps[AbsValue[A,D]] {
-      val boxOps = implicitly[ParOrdOps[D]]
+    def ops[A : ArithmeticOps, D : LatticeWithTopOps] = new LatticeOps[AbsValue[A,D]] {
+      val boxOps   = implicitly[LatticeWithTopOps[D]]
       val arithOps = implicitly[ArithmeticOps[A]]
       override def <=(lhs: AbsValue[A,D], rhs: AbsValue[A,D]): Option[Boolean] = {
         (lhs,rhs) match {
@@ -70,15 +70,13 @@ object MemElems {
           case (_,AbsTop) => AbsTop
           case (AbsRef(id1),AbsRef(id2)) => AbsRef(id1++id2)
           case (AbsBox(data1),AbsBox(data2)) =>
-            val order = boxOps.<=(data1,data2)
-            if(order.nonEmpty) {
-              if(order.get) AbsBox(data2) else AbsBox(data1)
-            } else AbsTop
+            val joined = boxOps.\/(data1,data2)
+            if(boxOps.isTop(joined)) AbsTop
+            else AbsBox(joined)
           case (AbsArith(data1),AbsArith(data2)) =>
-            val order = arithOps.<=(data1,data2)
-            if(order.nonEmpty) {
-              if(order.get) AbsArith(data2) else AbsArith(data1)
-            } else AbsTop
+            val joined = arithOps.\/(data1,data2)
+            if(arithOps.isTop(joined)) AbsTop
+            else AbsArith(joined)
           case (x,y) if x.isInstanceOf[AbsObject[A,D]] && y.isInstanceOf[AbsObject[A,D]] =>
             x.asInstanceOf[AbsObject[A,D]] \/ y.asInstanceOf[AbsObject[A,D]]
           case (_,_) => AbsTop

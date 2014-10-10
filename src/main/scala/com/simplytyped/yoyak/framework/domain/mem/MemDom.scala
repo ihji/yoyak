@@ -1,15 +1,12 @@
 package com.simplytyped.yoyak.framework.domain.mem
 
-import com.simplytyped.yoyak.framework.domain.{ArithmeticOps, LatticeOps, MapDom, ParOrdOps}
-import com.simplytyped.yoyak.framework.domain.mem.MemDom._
+import com.simplytyped.yoyak.framework.domain.{LatticeWithTopOps, ArithmeticOps, LatticeOps, MapDom}
 import com.simplytyped.yoyak.framework.domain.mem.MemElems._
-import com.simplytyped.yoyak.il.CommonIL.ClassName
-import com.simplytyped.yoyak.il.CommonIL.Value._
 
-class MemDom[A : ArithmeticOps, D : ParOrdOps] extends StdObjectModel[A,D,MemDom[A,D]] {
+class MemDom[A : ArithmeticOps, D : LatticeWithTopOps] extends StdObjectModel[A,D,MemDom[A,D]] {
 
-  val arithOps: ArithmeticOps[A] = implicitly[ArithmeticOps[A]]
-  val parOrOps: ParOrdOps[D]     = implicitly[ParOrdOps[D]]
+  val arithOps: ArithmeticOps[A]     = implicitly[ArithmeticOps[A]]
+  val boxedOps: LatticeWithTopOps[D] = implicitly[LatticeWithTopOps[D]]
 
   override protected def builder(rawMap: MapDom[AbsAddr, AbsValue[A, D]]): MemDom[A, D] = {
     val newMemDom = new MemDom[A,D]
@@ -19,9 +16,9 @@ class MemDom[A : ArithmeticOps, D : ParOrdOps] extends StdObjectModel[A,D,MemDom
 }
 
 object MemDom {
-  def empty[A : ArithmeticOps, D : ParOrdOps] = new MemDom[A,D]
+  def empty[A : ArithmeticOps, D : LatticeWithTopOps] = new MemDom[A,D]
 
-  def ops[A : ArithmeticOps, D : ParOrdOps] = new LatticeOps[MemDom[A,D]] {
+  def ops[A : ArithmeticOps, D : LatticeWithTopOps] = new LatticeOps[MemDom[A,D]] {
     implicit val absValueOps = AbsValue.ops[A,D]
     override def <=(lhs: MemDom[A,D], rhs: MemDom[A,D]): Option[Boolean] = {
       MapDom.ops[AbsAddr,AbsValue[A,D]].<=(lhs.rawMap,rhs.rawMap)
