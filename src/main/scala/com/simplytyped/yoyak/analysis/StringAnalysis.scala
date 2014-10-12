@@ -25,6 +25,7 @@ class StringAnalysis(cfg: CFG) {
             case l : Loc =>
               mem.get(l) match {
                 case AbsBox(strs) => list ++ strs
+                case _ => list
               }
             case _ => list
           }
@@ -57,10 +58,7 @@ object StringAnalysis {
       }
     }
   }
-
-  implicit val memDomOps : LatticeOps[MemDom[Set[Int],Set[String]]] = MemDom.ops[Set[Int],Set[String]]
-
-  implicit val boxedOps = new LatticeWithTopOps[Set[String]] {
+  implicit val boxedOps : LatticeWithTopOps[Set[String]] = new LatticeWithTopOps[Set[String]] {
     override def isTop(v: Set[String]): Boolean = false
 
     override def bottom: Set[String] = Set.empty[String]
@@ -96,4 +94,5 @@ object StringAnalysis {
       else if(rhs subsetOf lhs) Some(false)
       else None
   }
+  implicit val memDomOps : LatticeOps[MemDom[Set[Int],Set[String]]] = MemDom.ops[Set[Int],Set[String]]
 }

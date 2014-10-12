@@ -5,8 +5,8 @@ import com.simplytyped.yoyak.framework.domain.mem.MemElems._
 
 class MemDom[A : ArithmeticOps, D : LatticeWithTopOps] extends StdObjectModel[A,D,MemDom[A,D]] {
 
-  val arithOps: ArithmeticOps[A]     = implicitly[ArithmeticOps[A]]
-  val boxedOps: LatticeWithTopOps[D] = implicitly[LatticeWithTopOps[D]]
+  lazy val arithOps: ArithmeticOps[A]     = implicitly[ArithmeticOps[A]]
+  lazy val boxedOps: LatticeWithTopOps[D] = implicitly[LatticeWithTopOps[D]]
 
   override protected def builder(rawMap: MapDom[AbsAddr, AbsValue[A, D]]): MemDom[A, D] = {
     val newMemDom = new MemDom[A,D]
