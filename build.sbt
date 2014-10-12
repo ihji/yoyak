@@ -18,6 +18,8 @@ libraryDependencies += "org.apache.logging.log4j" % "log4j-api" % "2.0-rc1"
 
 libraryDependencies += "org.apache.logging.log4j" % "log4j-core" % "2.0-rc1"
 
+libraryDependencies += "commons-cli" % "commons-cli" % "1.2"
+
 
 antlr4Settings
 
