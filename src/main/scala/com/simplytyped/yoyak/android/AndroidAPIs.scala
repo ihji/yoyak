@@ -5,6 +5,7 @@ import com.simplytyped.yoyak.il.CommonIL.{ClassName, MethodSig}
 
 object AndroidAPIs {
   val internet = Set(
-    MethodSig(ClassName("java.net.Socket"),"<init>",List(CommonTypes.String,IntegerType))
+    MethodSig(ClassName("java.net.Socket"),"<init>",List(CommonTypes.String,IntegerType)),
+    MethodSig(ClassName("java.net.URL"),"<init>",List(CommonTypes.String))
   )
 }

@@ -185,6 +185,7 @@ object CommonIL {
     case class StaticInvoke(callee: MethodSig, args: List[Value.t]) extends InvokeType
 
     sealed abstract class ValueType
+
     sealed abstract class PrimType extends ValueType
     case object IntegerType extends PrimType
     case object LongType extends PrimType
@@ -197,8 +198,10 @@ object CommonIL {
     case object NullType extends PrimType
     case object VoidType extends PrimType
 
-    case class RefType(className: ClassName) extends ValueType
-    case class ArrayType(t: ValueType, dim: Int) extends ValueType
+    sealed abstract class ReferenceType extends ValueType
+    case class RefType(className: ClassName) extends ReferenceType
+    case class ArrayType(t: ValueType, dim: Int) extends ReferenceType
+
     case object UnknownType extends ValueType
 
     object CommonTypes {
@@ -285,7 +288,7 @@ object CommonIL {
     case class StringConstant(s: String) extends Constant {
       override final def ty = Type.CommonTypes.String
     }
-    case class ClassConstant(name: ClassName) extends Constant
+    case class ClassConstant(refTy: Type.ReferenceType) extends Constant
     case object NullConstant extends Constant
 
     sealed abstract class Loc extends Instant
@@ -299,7 +302,7 @@ object CommonIL {
     case class Param(i: Int) extends t
 
     case class CastExp(v: Loc, ofTy: Type.ValueType) extends t
-    case class InstanceOfExp(v: Loc, ofTy: Type.RefType) extends t
+    case class InstanceOfExp(v: Loc, ofTy: Type.ReferenceType) extends t
     case class LengthExp(v: Loc) extends t
 
     case class NewExp(ofTy: Type.RefType) extends t

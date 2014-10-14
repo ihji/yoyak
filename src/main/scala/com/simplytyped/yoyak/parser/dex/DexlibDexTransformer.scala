@@ -111,8 +111,8 @@ class DexlibDexTransformer {
       case Opcode.CONST_CLASS =>
         val const = instr.asInstanceOf[DexBackedInstruction21c]
         val dest = getRegVar(const.getRegisterA)
-        val refType = typeTransform(const.getReference.asInstanceOf[TypeReference].getType).asInstanceOf[Type.RefType]
-        Assign(dest,ClassConstant(refType.className))
+        val ty = typeTransform(const.getReference.asInstanceOf[TypeReference].getType).asInstanceOf[Type.ReferenceType]
+        Assign(dest,ClassConstant(ty))
       case Opcode.MONITOR_ENTER =>
         val mon = instr.asInstanceOf[DexBackedInstruction11x]
         val loc = getRegVar(mon.getRegisterA)
@@ -130,7 +130,7 @@ class DexlibDexTransformer {
         val instanceOf = instr.asInstanceOf[DexBackedInstruction22c]
         val dest = getRegVar(instanceOf.getRegisterA).setType(Type.BooleanType)
         val loc = getRegVar(instanceOf.getRegisterB)
-        val ty = typeTransform(instanceOf.getReference.asInstanceOf[TypeReference].getType).asInstanceOf[Type.RefType]
+        val ty = typeTransform(instanceOf.getReference.asInstanceOf[TypeReference].getType).asInstanceOf[Type.ReferenceType]
         Assign(dest,InstanceOfExp(loc,ty).setType(Type.BooleanType))
       case Opcode.ARRAY_LENGTH =>
         val length = instr.asInstanceOf[DexBackedInstruction12x]

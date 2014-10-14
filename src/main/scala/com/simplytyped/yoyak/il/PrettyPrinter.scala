@@ -80,7 +80,7 @@ class PrettyPrinter {
       case BooleanConstant(v) => v.toString
       case ShortConstant(v) => v.toString
       case StringConstant(s) => "\""+s+"\""
-      case ClassConstant(cn) => ClassName.toString(cn)
+      case ClassConstant(refTy) => s"${toString(refTy)}.class"
       case NullConstant => "null"
 
       case Local(id) => s"$id:${toString(va.ty)}"
