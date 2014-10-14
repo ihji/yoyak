@@ -17,7 +17,6 @@ trait FlowSensitiveWorklistIteration[D] extends Iteration[D] {
   }
 
   def computeFixedPoint(startNodes: List[BasicBlock], getPrevBlocks: BasicBlock => Seq[BasicBlock], getNextBlocks: BasicBlock => Seq[BasicBlock]) : MapDom[BasicBlock,D] = {
-    assert(startNodes.size > 0)
     worklist.add(startNodes:_*)
     var map = MapDom.empty[BasicBlock,D]
     while(worklist.size() > 0) {

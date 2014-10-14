@@ -62,14 +62,15 @@ class CommonILToCFG {
       node.data.getStmts.last match {
         case If(cond,target) =>
           val nexts = cfg.getNexts(node)
-          assert(nexts.size == 2)
-          nexts.foreach { n =>
-            if(n.data.getStmts.find{_ ==target.getStmt}.nonEmpty) {
-              val newStmts = Assume(cond)::n.data.getStmts
-              n.data.setStmts(newStmts)
-            } else {
-              val newStmts = Assume(cond.negate)::n.data.getStmts
-              n.data.setStmts(newStmts)
+          if(nexts.size == 2) {
+            nexts.foreach { n =>
+              if(n.data.getStmts.find{_ ==target.getStmt}.nonEmpty) {
+                val newStmts = Assume(cond)::n.data.getStmts
+                n.data.setStmts(newStmts)
+              } else {
+                val newStmts = Assume(cond.negate)::n.data.getStmts
+                n.data.setStmts(newStmts)
+              }
             }
           }
         case _ => // do nothing
