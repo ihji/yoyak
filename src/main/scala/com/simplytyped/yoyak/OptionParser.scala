@@ -18,7 +18,7 @@ class OptionParser {
     OptionBuilder.hasArg()
     OptionBuilder.withArgName("file")
     optsBuffer.addOption(OptionBuilder.create("target_apk"))
-    lineBuildBuffer.append((o,c) => Option(c.getOptionValue("target_apk")).foreach{x => o.target_apk = List(x)})
+    lineBuildBuffer.append((o,c) => Option(c.getOptionValue("target_apk")).foreach{x => o.target_apk = Some(x)})
     /* add options here : END */
 
     (optsBuffer,lineBuildBuffer.toList)

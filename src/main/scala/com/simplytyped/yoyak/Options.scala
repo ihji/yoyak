@@ -1,7 +1,7 @@
 package com.simplytyped.yoyak
 
 class Options {
-  var target_apk : List[String] = List.empty
+  var target_apk : Option[String] = None
 }
 
 object Options {

@@ -1321,9 +1321,9 @@ class DexlibDexTransformer {
       }._1.reverse
       val finalStmts = paramStmts++stmts
 
-      Method(sig,finalStmts)
+      Method(sig,finalStmts,None)
 
-    }.getOrElse(Method(sig,List()))
+    }.getOrElse(Method(sig,List(),None))
   }
   def classTransform(clazz: DexBackedClassDef) : Clazz = {
     val name = ClassName(clazz.getType)

@@ -54,7 +54,7 @@ class AntlrJavaTransformer {
     val methodBody = methodDef.methodBody().block().blockStatement().asScala.toList.flatMap{blockStatementContextToStmt}
 
     val stmts = params ++ methodBody
-    Some(Method(MethodSig(className,methodName,paramTy),stmts))
+    Some(Method(MethodSig(className,methodName,paramTy),stmts,None))
   }
   def classDefToClazz(classDef: ClassDeclarationContext) : Option[Clazz] = {
     val className = ClassName(classDef.Identifier().getSymbol.getText)

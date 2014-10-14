@@ -1,6 +1,7 @@
 package com.simplytyped.yoyak.il
 
 import com.simplytyped.yoyak.il.CommonIL.Statement.CoreStmt
+import com.simplytyped.yoyak.il.cfg.CFG
 
 /* container for common IL
    common IL is an input program representation before graph transformation
@@ -34,7 +35,8 @@ object CommonIL {
 
   case class Method(
     name : MethodSig,
-    statements : List[CoreStmt]
+    statements : List[CoreStmt],
+    cfg : Option[CFG]
   )
 
   case class ClassName(packageName: List[String], name: String)
