@@ -4,12 +4,13 @@ import com.simplytyped.yoyak.phases._
 
 object Main {
   val dexParser      = new DexParserPhase
+  val classHierarchy = new ClassHierarchyGenPhase
   val cfgGen         = new CfgGenPhase
   val varSplitting   = new VarSplittingPhase
   val stringAnalysis = new StringAnalysisPhase
 
   val androidStringAnalysis = {
-    val phases = List(dexParser,cfgGen,varSplitting,stringAnalysis)
+    val phases = List(dexParser,classHierarchy,cfgGen,varSplitting,stringAnalysis)
     phases.sliding(2).foreach{list => list(1).dependsOn(list(0))}
     phases.head
   }
