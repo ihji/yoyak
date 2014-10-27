@@ -94,7 +94,9 @@ class CommonILToCFG {
   }
   def transform(stmts: List[CoreStmt]) : CFG = {
     def findByFirstStmt(blocks: List[BasicBlock], stmt: Stmt) : Option[BasicBlock] = blocks.find{_.data.getStmts.head == stmt}
-    val basicBlocks = makeBasicBlocks(stmts)
+    val entryBlock = BasicBlock.getEntryBlock()
+    val basicBlocks = entryBlock::makeBasicBlocks(stmts)
+    val exitBlock = BasicBlock.getExitBlock()
     val edges = basicBlocks.sliding(2).foldLeft(List.empty[BasicEdge]) {
       (edgeList,blockOfTwo) =>
         blockOfTwo.head.data.getStmts.last match {
@@ -105,8 +107,8 @@ class CommonILToCFG {
           case Goto(target) =>
             val targetBlock = findByFirstStmt(basicBlocks,target.getStmt).get
             BasicEdge(blockOfTwo.head,targetBlock)::edgeList
-          case Return(_) => edgeList
-          case Throw(_) => edgeList
+          case Return(_) => BasicEdge(blockOfTwo.head,exitBlock)::edgeList
+          case Throw(_) => BasicEdge(blockOfTwo.head,exitBlock)::edgeList
           case _ =>
             if(blockOfTwo.size == 1) edgeList
             else BasicEdge(blockOfTwo.head,blockOfTwo.last)::edgeList

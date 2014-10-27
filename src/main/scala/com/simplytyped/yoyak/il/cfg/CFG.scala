@@ -7,6 +7,8 @@ case class CFG(nodes: Set[BasicBlock], edges: Set[BasicEdge], nexts: Map[BasicBl
   def builder(nodes: Set[BasicBlock], edges: Set[BasicEdge], nexts: Map[BasicBlock, Set[BasicEdge]], prevs: Map[BasicBlock, Set[BasicEdge]]): CFG = {
     CFG(nodes,edges,nexts,prevs)
   }
+  def getEntry : Option[BasicBlock] = nodes.find{_.isEntry}
+  def getExit : Option[BasicBlock] = nodes.find{_.isExit}
 }
 
 object CFG {

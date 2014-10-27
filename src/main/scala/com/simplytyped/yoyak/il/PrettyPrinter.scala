@@ -4,6 +4,7 @@ import com.simplytyped.yoyak.il.CommonIL._
 import com.simplytyped.yoyak.il.CommonIL.Statement._
 import com.simplytyped.yoyak.il.CommonIL.Value._
 import com.simplytyped.yoyak.il.CommonIL.Type._
+import com.simplytyped.yoyak.il.cfg.BasicBlock.{ExitMarkerContainer, EntryMarkerContainer, CoreStatementContainer}
 import com.simplytyped.yoyak.il.cfg.{BasicEdge, BasicBlock, CFG}
 
 class PrettyPrinter {
@@ -17,7 +18,13 @@ class PrettyPrinter {
     buf.toString
   }
   def toString(node: BasicBlock) : String = {
-    "\""+node.id+":\\n"+node.data.getStmts.map{toString}.map{_.replace("\"","'")}.mkString("\\n")+"\""
+    node.data match {
+      case _ : CoreStatementContainer =>
+        "\""+node.id+":\\n"+node.data.getStmts.map{toString}.map{_.replace("\"","'")}.mkString("\\n")+"\""
+      case EntryMarkerContainer => "\"ENTRY\""
+      case ExitMarkerContainer => "\"EXIT\""
+    }
+
   }
   def toString(edge: BasicEdge) : String = {
     s"${toString(edge.from)} -> ${toString(edge.to)}"
