@@ -17,6 +17,7 @@ object CommonIL {
   case class Program(
     classes : Map[ClassName,Clazz]
   ) {
+    lazy val methods = classes.values.foldLeft(Map.empty[MethodSig,Method]){_++_.methods}
     def findByMethodName(name: String) : List[Method] = {
       var list = List.empty[Method]
       for((_,clazz) <- classes; (_,method) <- clazz.methods) {
@@ -36,8 +37,7 @@ object CommonIL {
   case class Method(
     name : MethodSig,
     statements : List[CoreStmt],
-    cfg : Option[CFG]
-  )
+    var cfg : Option[CFG] = None)
 
   case class ClassName(packageName: List[String], name: String)
   object ClassName {

@@ -7,7 +7,7 @@ import com.simplytyped.yoyak.il.cfg.{BasicBlock, CFG}
 
 object ForwardAnalysis {
 
-  class FlowInsensitiveForwardAnalysis[D](cfg: CFG)(implicit val ops: LatticeOps[D], val absTransfer: AbstractTransferable[D]) extends FlowInsensitiveWorklistIteration[D] {
+  class FlowInsensitiveForwardAnalysis[D](var cfg: CFG)(implicit val ops: LatticeOps[D], val absTransfer: AbstractTransferable[D]) extends FlowInsensitiveWorklistIteration[D] {
     def compute(input: D): D = {
       val startNodes = cfg.getEntry.toList
       val getNextBlocks = { bb: BasicBlock => cfg.getNexts(bb).toList}
@@ -15,7 +15,7 @@ object ForwardAnalysis {
     }
   }
 
-  class FlowSensitiveForwardAnalysis[D](cfg: CFG)(implicit val ops: LatticeOps[D], val absTransfer: AbstractTransferable[D]) extends FlowSensitiveWorklistIteration[D] {
+  class FlowSensitiveForwardAnalysis[D](var cfg: CFG)(implicit val ops: LatticeOps[D], val absTransfer: AbstractTransferable[D]) extends FlowSensitiveWorklistIteration[D] {
     implicit val mapDomOps: LatticeOps[MapDom[BasicBlock,D]] = MapDom.ops[BasicBlock,D]
     def compute : MapDom[BasicBlock,D] = {
       val startNodes = cfg.getEntry.toList
