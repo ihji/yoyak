@@ -10,16 +10,18 @@ class CommonILToCFG {
       val idxOfFirstBranch = stmts.indexWhere{
         case _ : If => true
         case _ : Goto => true
+        case _ : Invoke => true
         case _ => false
       }
       if(idxOfFirstBranch == -1) (stmts,None,List.empty[CoreStmt])
       else {
         val (firstStmts, secondStmts) = stmts.splitAt(idxOfFirstBranch+1)
         val target = firstStmts.last match {
-          case If(_,t) => t
-          case Goto(t) => t
+          case If(_,t) => Some(t.getStmt)
+          case Goto(t) => Some(t.getStmt)
+          case _ : Invoke => None
         }
-        (firstStmts,Some(target.getStmt),secondStmts)
+        (firstStmts,target,secondStmts)
       }
     }
 
