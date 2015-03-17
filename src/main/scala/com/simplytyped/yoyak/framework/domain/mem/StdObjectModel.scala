@@ -84,12 +84,18 @@ trait StdObjectModel[A,D,This<:StdObjectModel[A,D,This]] extends MemDomLike[A,D,
           case _ => AbsBottom
         }
     }
+  def isStaticAddr(addr: AbsAddr) : Boolean = addr.id.startsWith(StdObjectModel.staticPrefix)
+  def isDynamicAddr(addr: AbsAddr) : Boolean = addr.id.startsWith(StdObjectModel.dynamicPrefix)
+
   protected def builder(rawMap: MapDom[AbsAddr,AbsValue[A,D]]) : This
 }
 
 object StdObjectModel {
-  def getStaticAddr(className: ClassName) : AbsAddr = AbsAddr(s"__static_obj_${ClassName.toString(className)}")
+  val staticPrefix = "__static_obj_"
+  val dynamicPrefix = "__dynamic_obj_"
+
+  def getStaticAddr(className: ClassName) : AbsAddr = AbsAddr(s"$staticPrefix${ClassName.toString(className)}")
 
   var addrIdx = 0
-  def getNewAddr() : AbsAddr = {addrIdx += 1; AbsAddr(s"__dynamic_obj_$addrIdx")}
+  def getNewAddr() : AbsAddr = {addrIdx += 1; AbsAddr(s"$dynamicPrefix$addrIdx")}
 }
