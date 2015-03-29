@@ -88,6 +88,7 @@ object CommonILHelper {
       case v : ArrayRef => v.copy(base = substituteL(f)(v.base), index = substituteI(f)(v.index))
       case v : InstanceFieldRef => v.copy(base = substituteL(f)(v.base))
       case v : StaticFieldRef => v
+      case v : Param => v
     }
   }
   def substituteLocalDef(f: Value.Local => Value.Local)(stmt: CoreStmt) : CoreStmt = {
@@ -115,15 +116,15 @@ object CommonILHelper {
         StmtCopier.Assign(stmt,newLv,substituteV(f)(rv))
       case stmt@Invoke(ret, callee) =>
         val newCallee = callee match {
-          case inv: DynamicInvoke => inv.copy(args = inv.args.map{substituteV(f)}, base = substituteL(f)(inv.base))
-          case inv: StaticInvoke => inv.copy(args = inv.args.map{substituteV(f)})
+          case inv: DynamicInvoke => inv.copy(args = inv.args.map{substituteL(f)}, base = substituteL(f)(inv.base))
+          case inv: StaticInvoke => inv.copy(args = inv.args.map{substituteL(f)})
         }
         StmtCopier.Invoke(stmt,ret,newCallee)
       case stmt@Assume(CondBinExp(v1,op,v2)) =>
         val newCond = CondBinExp(substituteV(f)(v1),op,substituteV(f)(v2))
         StmtCopier.Assume(stmt,newCond)
       case stmt@Return(v) =>
-        StmtCopier.Return(stmt,v.map{substituteV(f)})
+        StmtCopier.Return(stmt,v.map{substituteL(f)})
       case stmt@Nop() => stmt
       case stmt@EnterMonitor(v) =>
         StmtCopier.EnterMonitor(stmt,substituteL(f)(v))

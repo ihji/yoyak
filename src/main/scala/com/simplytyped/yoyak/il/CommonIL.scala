@@ -99,7 +99,7 @@ object CommonIL {
 
     case class Assume(cond: Value.CondBinExp) extends CfgStmt
 
-    case class Return(v: Option[Value.t]) extends CfgStmt
+    case class Return(v: Option[Value.Loc]) extends CfgStmt
 
     case class Nop() extends CfgStmt
 
@@ -152,7 +152,7 @@ object CommonIL {
         def Assume(assume: Assume, cond: Value.CondBinExp) =
           new Assume(cond).copyAttr(assume)
 
-        def Return(ret: Return, v: Option[Value.t]) =
+        def Return(ret: Return, v: Option[Value.Loc]) =
           new Return(v).copyAttr(ret)
 
         def Nop(nop: Nop) =
@@ -179,10 +179,10 @@ object CommonIL {
   object Type {
     sealed abstract class InvokeType {
       val callee: MethodSig
-      val args: List[Value.t]
+      val args: List[Value.Loc]
     }
-    case class DynamicInvoke(callee: MethodSig, args: List[Value.t], base: Value.Loc) extends InvokeType
-    case class StaticInvoke(callee: MethodSig, args: List[Value.t]) extends InvokeType
+    case class DynamicInvoke(callee: MethodSig, args: List[Value.Loc], base: Value.Loc) extends InvokeType
+    case class StaticInvoke(callee: MethodSig, args: List[Value.Loc]) extends InvokeType
 
     sealed abstract class ValueType
 
@@ -296,10 +296,10 @@ object CommonIL {
     case class ArrayRef(base: Loc, index: Instant) extends Loc
     case class InstanceFieldRef(base: Loc, field: String) extends Loc
     case class StaticFieldRef(clazz: ClassName, field: String) extends Loc
+    case class Param(i: Int) extends Loc
 
     case object This extends t
     case object CaughtExceptionRef extends t
-    case class Param(i: Int) extends t
 
     case class CastExp(v: Loc, ofTy: Type.ValueType) extends t
     case class InstanceOfExp(v: Loc, ofTy: Type.ReferenceType) extends t

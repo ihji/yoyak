@@ -51,6 +51,9 @@ trait StdObjectModel[A,D,This<:StdObjectModel[A,D,This]] extends MemDomLike[A,D,
             obj.updateField(field->v)
         }
         map.update(staticAddr->newStaticObj)
+      case Param(i) =>
+        val addr = getParamAddr(i)
+        map.update(addr->v)
     }
   }
   def update(kv: (Loc,AbsValue[A,D])) : This = {
@@ -83,6 +86,9 @@ trait StdObjectModel[A,D,This<:StdObjectModel[A,D,This]] extends MemDomLike[A,D,
           case obj: AbsObject[A,D] => obj.getField(field)
           case _ => AbsBottom
         }
+      case Param(i) =>
+        val addr = getParamAddr(i)
+        rawMap.get(addr)
     }
   def isStaticAddr(addr: AbsAddr) : Boolean = addr.id.startsWith(StdObjectModel.staticPrefix)
   def isDynamicAddr(addr: AbsAddr) : Boolean = addr.id.startsWith(StdObjectModel.dynamicPrefix)
@@ -98,4 +104,5 @@ object StdObjectModel {
 
   var addrIdx = 0
   def getNewAddr() : AbsAddr = {addrIdx += 1; AbsAddr(s"$dynamicPrefix$addrIdx")}
+  def getParamAddr(i: Int) : AbsAddr = AbsAddr(s"${dynamicPrefix}p$i")
 }

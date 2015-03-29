@@ -1340,7 +1340,7 @@ class DexlibDexTransformer {
     val classMap = classSet.map{classTransform}.map{x=>(x.name,x)}.toMap
     Program(classMap)
   }
-  private def removeSecondOfWideRegisters(paramTypes: List[Type.ValueType], args: List[Value.t]) : List[Value.t] = {
+  private def removeSecondOfWideRegisters(paramTypes: List[Type.ValueType], args: List[Value.Loc]) : List[Value.Loc] = {
     paramTypes.map{CommonILHelper.getUnitSizeOf}.flatMap{case 1 => List(1); case 2 => List(1,0)}.zip(args).flatMap{case (mark,v) => if(mark == 1) Some(v) else None}
   }
   private def offsetToIndex(currentIdx: Int, offset: Int)(implicit context: Context) : Int = {
