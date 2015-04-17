@@ -3,7 +3,7 @@ package com.simplytyped.yoyak.framework.algo
 import com.simplytyped.yoyak.framework.semantics.AbstractTransferable
 import com.simplytyped.yoyak.il.cfg.BasicBlock
 
-trait Iteration[D] {
+trait FlowInsensitiveIteration[D] {
    implicit val absTransfer : AbstractTransferable[D]
 
    protected def work(input: D, block: BasicBlock) : D = {
@@ -11,4 +11,4 @@ trait Iteration[D] {
      val output = stmts.foldLeft(input){absTransfer.transfer}
      output
    }
- }
+}

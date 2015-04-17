@@ -3,7 +3,7 @@ package com.simplytyped.yoyak.framework.algo
 import com.simplytyped.yoyak.framework.domain.{MapDom, LatticeOps}
 import com.simplytyped.yoyak.il.cfg.BasicBlock
 
-trait FlowSensitiveWorklistIteration[D] extends Iteration[D] {
+trait FlowSensitiveFixedPointComputation[D] extends FlowSensitiveIteration[D] with BiDirectionalFetcher[D] {
   implicit val ops : LatticeOps[D]
   implicit val mapDomOps : LatticeOps[MapDom[BasicBlock,D]]
 
@@ -11,20 +11,20 @@ trait FlowSensitiveWorklistIteration[D] extends Iteration[D] {
 
   private def getInput(map: MapDom[BasicBlock,D], prevBlocks: Seq[BasicBlock]) : D = {
     val input = prevBlocks.foldLeft(ops.bottom) {
-      (d,b) => ops.\/(d,map.get(b))
+      (d,b) => ops.\/(d,memoryFetcher(map,b))
     }
     input
   }
 
-  def computeFixedPoint(startNodes: List[BasicBlock], getPrevBlocks: BasicBlock => Seq[BasicBlock], getNextBlocks: BasicBlock => Seq[BasicBlock]) : MapDom[BasicBlock,D] = {
+  def computeFixedPoint(startNodes: List[BasicBlock]) : MapDom[BasicBlock,D] = {
     worklist.add(startNodes:_*)
     var map = MapDom.empty[BasicBlock,D]
     while(worklist.size() > 0) {
       val bb = worklist.pop().get
       val prevBlocks = getPrevBlocks(bb)
       val prev = getInput(map,prevBlocks)
-      val next = work(prev,bb)
-      val nextMap = map.update(bb->next)
+      val (mapOut,next) = work(map,prev,bb)
+      val nextMap = mapOut.update(bb->next)
       val isStableOpt = mapDomOps.<=(nextMap,map)
       if(isStableOpt.isEmpty) println("error: abs. transfer func. is not distributive") // XXX: abstract transfer function is not distributive. should report this error.
       if(!isStableOpt.get) {

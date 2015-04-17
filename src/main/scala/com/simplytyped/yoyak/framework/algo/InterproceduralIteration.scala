@@ -8,7 +8,7 @@ import com.simplytyped.yoyak.il.CommonIL.Value.{Local, Param}
 import com.simplytyped.yoyak.il.cfg.BasicEdge.InterEdge
 import com.simplytyped.yoyak.il.cfg.{CFG, BasicEdge, BasicBlock}
 
-trait Interprocedural[A,D,M<:MemDomLike[A,D,M]] {
+trait InterproceduralIteration[A,D,M<:MemDomLike[A,D,M]] extends FlowSensitiveIteration[M] with BiDirectionalFetcher[M] {
   implicit val localize : Localizable[M]
   implicit val resolve  : Resolvable[M]
 
@@ -16,6 +16,18 @@ trait Interprocedural[A,D,M<:MemDomLike[A,D,M]] {
   val worklist : Worklist[BasicBlock]
 
   var interproceduralEdges : CFG = CFG.empty
+
+  override def work(map: MapDom[BasicBlock,M], input: M, block: BasicBlock) : (MapDom[BasicBlock,M],M) = {
+    val stmts = block.data.getStmts
+    val (newMap,output) = stmts.foldLeft(map,input){
+      case ((m,in),ivk @ Invoke(_,_)) =>
+        (invoking(block, ivk, in, m), absTransfer.transfer(in, ivk))
+      case ((m,in),ret @ Return(_)) =>
+        (returning(block, ret, in, m), absTransfer.transfer(in, ret))
+      case ((m,in),s) => (m, absTransfer.transfer(in, s))
+    }
+    (newMap,output)
+  }
 
   /*
   invoking procedure:
@@ -50,7 +62,7 @@ trait Interprocedural[A,D,M<:MemDomLike[A,D,M]] {
     newInput
   }
 
-  def invoking(cfg: CFG, block: BasicBlock, invokeStmt: Invoke, input: M, map: MapDom[BasicBlock,M]) : MapDom[BasicBlock,M] = {
+  def invoking(block: BasicBlock, invokeStmt: Invoke, input: M, map: MapDom[BasicBlock,M]) : MapDom[BasicBlock,M] = {
     val targetMethodSigs = resolve.resolve(input,invokeStmt)
     val targetMethods = targetMethodSigs.flatMap{pgm.methods.get}
     targetMethods.foldLeft(map) {
@@ -61,7 +73,7 @@ trait Interprocedural[A,D,M<:MemDomLike[A,D,M]] {
         for (targetCfg <- targetMethod.cfg;
              targetEntry <- targetCfg.getEntry; targetExit <- targetCfg.getExit) {
 
-          val nextBlocks = cfg.getNexts(block)
+          val nextBlocks = getNextBlocks(block)
           assert(nextBlocks.size == 1, "invoke block can only have one next block")
           val nextBlock = nextBlocks.head
           val goEdge = BasicEdge(block, targetEntry, InterEdge(None))
@@ -79,13 +91,14 @@ trait Interprocedural[A,D,M<:MemDomLike[A,D,M]] {
 
   val returningPlaceholder = Local("$__ret")
 
-  def returning(cfg: CFG, block: BasicBlock, returnStmt: Return, input: M, map: MapDom[BasicBlock,M]) : MapDom[BasicBlock,M] = {
+  def returning(block: BasicBlock, returnStmt: Return, input: M, map: MapDom[BasicBlock,M]) : MapDom[BasicBlock,M] = {
     val returnValOpt = returnStmt.v.map{input.get}
     val localizedMemory = localize.deleteLocals(input)
     val returningMemory = returnValOpt.foldLeft(localizedMemory) {
       case (m,ret) => m.update(returningPlaceholder,ret)
     }
-    cfg.getExit.foldLeft(map) {
+    val exitNode = getNextBlocks(block)
+    exitNode.foldLeft(map) {
       case (m,exitNode) =>
         val succsOfExit = interproceduralEdges.getNexts(exitNode).toList
         worklist.add(succsOfExit:_*)

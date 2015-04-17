@@ -3,12 +3,13 @@ package com.simplytyped.yoyak.framework.algo
 import com.simplytyped.yoyak.framework.domain.LatticeOps
 import com.simplytyped.yoyak.il.cfg.BasicBlock
 
-trait FlowInsensitiveWorklistIteration[D] extends Iteration[D] {
+trait FlowInsensitiveFixedPointComputation[D] extends FlowInsensitiveIteration[D] {
   implicit val ops : LatticeOps[D]
+  def getNextBlocks(bb: BasicBlock) : Seq[BasicBlock]
 
   val worklist = Worklist.empty[BasicBlock]
 
-  def computeFixedPoint(input: D, startNodes: List[BasicBlock], getNextBlocks: BasicBlock => Seq[BasicBlock]) : D = {
+  def computeFixedPoint(input: D, startNodes: List[BasicBlock]) : D = {
     assert(startNodes.size > 0)
     worklist.add(startNodes:_*)
     var next = input
