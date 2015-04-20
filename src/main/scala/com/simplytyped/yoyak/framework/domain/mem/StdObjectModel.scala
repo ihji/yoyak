@@ -18,6 +18,10 @@ trait StdObjectModel[A,D,This<:StdObjectModel[A,D,This]] extends MemDomLike[A,D,
     val newRawMap = updateRawMap(rawMap,loc->newAddr.toAbsRef).update(newAddr->newObj)
     builder(newRawMap)
   }
+  def remove(loc: Local) : This = {
+    val newRawMap = rawMap.remove(AbsAddr(loc.id))
+    builder(newRawMap)
+  }
   private def updateRawMap(map: MapDom[AbsAddr,AbsValue[A,D]], kv: (Loc,AbsValue[A,D])) : MapDom[AbsAddr,AbsValue[A,D]] = {
     val (loc,v) = kv
     loc match {

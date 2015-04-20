@@ -3,15 +3,15 @@ package com.simplytyped.yoyak.framework.algo
 import com.simplytyped.yoyak.framework.domain.{MapDom, LatticeOps}
 import com.simplytyped.yoyak.il.cfg.BasicBlock
 
-trait FlowSensitiveFixedPointComputation[D] extends FlowSensitiveIteration[D] with BiDirectionalFetcher[D] {
+trait FlowSensitiveFixedPointComputation[D] extends FlowSensitiveIteration[D] with CfgNavigator[D] {
   implicit val ops : LatticeOps[D]
   implicit val mapDomOps : LatticeOps[MapDom[BasicBlock,D]]
 
   val worklist = Worklist.empty[BasicBlock]
 
-  private def getInput(map: MapDom[BasicBlock,D], prevBlocks: Seq[BasicBlock]) : D = {
-    val input = prevBlocks.foldLeft(ops.bottom) {
-      (d,b) => ops.\/(d,memoryFetcher(map,b))
+  private def getInput(map: MapDom[BasicBlock,D], inputs: Seq[D]) : D = {
+    val input = inputs.foldLeft(ops.bottom) {
+      (d,i) => ops.\/(d,i)
     }
     input
   }
@@ -21,8 +21,8 @@ trait FlowSensitiveFixedPointComputation[D] extends FlowSensitiveIteration[D] wi
     var map = MapDom.empty[BasicBlock,D]
     while(worklist.size() > 0) {
       val bb = worklist.pop().get
-      val prevBlocks = getPrevBlocks(bb)
-      val prev = getInput(map,prevBlocks)
+      val prevInputs = memoryFetcher(map,bb)
+      val prev = getInput(map,prevInputs)
       val (mapOut,next) = work(map,prev,bb)
       val nextMap = mapOut.update(bb->next)
       val isStableOpt = mapDomOps.<=(nextMap,map)

@@ -5,10 +5,10 @@ import com.simplytyped.yoyak.framework.domain.mem.{MemDomLike, Resolvable, Local
 import com.simplytyped.yoyak.il.CommonIL.Program
 import com.simplytyped.yoyak.il.CommonIL.Statement.{Return, Invoke}
 import com.simplytyped.yoyak.il.CommonIL.Value.{Local, Param}
-import com.simplytyped.yoyak.il.cfg.BasicEdge.InterEdge
+import com.simplytyped.yoyak.il.cfg.BasicEdge.{IntraEdge, EdgeType, InterEdge}
 import com.simplytyped.yoyak.il.cfg.{CFG, BasicEdge, BasicBlock}
 
-trait InterproceduralIteration[A,D,M<:MemDomLike[A,D,M]] extends FlowSensitiveIteration[M] with BiDirectionalFetcher[M] {
+trait InterproceduralIteration[A,D,M<:MemDomLike[A,D,M]] extends FlowSensitiveIteration[M] with CfgNavigator[M] {
   implicit val localize : Localizable[M]
   implicit val resolve  : Resolvable[M]
 
@@ -16,6 +16,34 @@ trait InterproceduralIteration[A,D,M<:MemDomLike[A,D,M]] extends FlowSensitiveIt
   val worklist : Worklist[BasicBlock]
 
   var interproceduralEdges : CFG = CFG.empty
+
+  override def getNextBlocks(bb: BasicBlock) : Seq[BasicBlock] = {
+    val methodSigOpt = BasicBlock.getMethodSig(bb)
+    methodSigOpt.flatMap {pgm.methods.get}.
+      flatMap {_.cfg}.
+      map {_.getNexts(bb).toList}.
+      getOrElse(List.empty[BasicBlock])
+  }
+  override def memoryFetcher(map: MapDom[BasicBlock,M], b: BasicBlock) : Seq[M] = {
+    val methodSigOpt = BasicBlock.getMethodSig(b)
+    methodSigOpt.flatMap {pgm.methods.get}.
+      flatMap {_.cfg}.
+      flatMap {_.prevs.get(b)}.
+      map {_.toList.map{e => renameReturnVar(map.get(e.from),e.label)}}.
+      getOrElse(List.empty[M])
+  }
+
+  private def renameReturnVar(input: M, edgeTy: EdgeType) : M = {
+    edgeTy match {
+      case IntraEdge => input
+      case InterEdge(retVar) =>
+        if(retVar.isEmpty) input.remove(returningPlaceholder)
+        else {
+          val data = input.get(returningPlaceholder)
+          input.update(retVar.get->data)
+        }
+    }
+  }
 
   override def work(map: MapDom[BasicBlock,M], input: M, block: BasicBlock) : (MapDom[BasicBlock,M],M) = {
     val stmts = block.data.getStmts

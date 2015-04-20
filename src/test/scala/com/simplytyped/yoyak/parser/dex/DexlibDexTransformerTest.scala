@@ -9,7 +9,7 @@ class DexlibDexTransformerTest extends FunSuite with Matchers {
 
     import com.simplytyped.yoyak.il.cfg.CommonILToCFG
     import com.simplytyped.yoyak.il.PrettyPrinter
-    val cfg = new CommonILToCFG().transform(pgm.findByMethodName("argTest").head.statements)
+    val cfg = new CommonILToCFG().transform(pgm.findByMethodName("argTest").head)
     println(new PrettyPrinter().toDot(cfg))
 
     pgm.findByMethodName("argTest").nonEmpty should be (true)

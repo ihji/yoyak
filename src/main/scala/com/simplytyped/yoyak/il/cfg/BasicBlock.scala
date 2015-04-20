@@ -1,6 +1,7 @@
 package com.simplytyped.yoyak.il.cfg
 
 import com.simplytyped.yoyak.graph.NodeLike
+import com.simplytyped.yoyak.il.CommonIL.MethodSig
 import com.simplytyped.yoyak.il.CommonIL.Statement.{Nop, CoreStmt}
 import com.simplytyped.yoyak.il.cfg.BasicBlock.{ExitMarkerContainer, EntryMarkerContainer, AbstractStatementContainer}
 
@@ -12,7 +13,8 @@ case class BasicBlock(data: AbstractStatementContainer, id: Int) extends NodeLik
 }
 
 object BasicBlock {
-  var idCounter = 0
+  private var idCounter = 0
+  private var idToMethodSigMap = Map.empty[Int,MethodSig]
   abstract class AbstractStatementContainer {
     def getStmts : List[CoreStmt]
     def setStmts(s : List[CoreStmt]) : AbstractStatementContainer
@@ -30,8 +32,9 @@ object BasicBlock {
     def getStmts = stmts
     def setStmts(s : List[CoreStmt]) = {stmts = s; this}
   }
-  def apply(stmts: List[CoreStmt]) : BasicBlock = {
+  def apply(methodSig: MethodSig)(stmts: List[CoreStmt]) : BasicBlock = {
     idCounter += 1
+    idToMethodSigMap += idCounter -> methodSig
     BasicBlock(new CoreStatementContainer().setStmts(stmts), idCounter)
   }
   def getEntryBlock() : BasicBlock = {
@@ -42,4 +45,5 @@ object BasicBlock {
     idCounter += 1
     BasicBlock(ExitMarkerContainer,idCounter)
   }
+  def getMethodSig(bb: BasicBlock) : Option[MethodSig] = idToMethodSigMap.get(bb.id)
 }

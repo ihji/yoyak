@@ -11,7 +11,7 @@ class CfgGenPhase extends Phase {
       case (cn,cl) =>
         val newMethods = cl.methods.map{
           case (sig,mtd) =>
-            val cfg = toCFG.transform(mtd.statements)
+            val cfg = toCFG.transform(mtd)
             mtd.cfg = Some(cfg)
             (sig,mtd)
         }

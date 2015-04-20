@@ -17,6 +17,13 @@ class MapDom[K,V : LatticeOps] {
   def update(kv: (K,V)) : MapDom[K,V] = add(kv)
   def weakUpdate(kv: (K,V)) : MapDom[K,V] = add(kv._1 -> valueOps.\/(get(kv._1),kv._2))
   def get(k: K) : V = rawMap.getOrElse(k,valueOps.bottom)
+  def remove(k: K) : MapDom[K,V] = {
+    if(rawMap.get(k).nonEmpty) {
+      val newDom = new MapDom[K,V]
+      newDom.rawMap = rawMap - k
+      newDom
+    } else this
+  }
 
   def foldLeft[T](init: T)(f: (T,(K,V)) => T) : T = rawMap.foldLeft(init)(f)
   def size : Int = rawMap.size

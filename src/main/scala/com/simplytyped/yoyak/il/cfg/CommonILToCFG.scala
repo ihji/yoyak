@@ -1,11 +1,12 @@
 package com.simplytyped.yoyak.il.cfg
 
+import com.simplytyped.yoyak.il.CommonIL.{MethodSig, Method}
 import com.simplytyped.yoyak.il.CommonIL.Statement._
 
 import scala.collection.mutable.ListBuffer
 
 class CommonILToCFG {
-  def makeBasicBlocks(stmts: List[CoreStmt]) : List[BasicBlock] = {
+  def makeBasicBlocks(methodSig: MethodSig, stmts: List[CoreStmt]) : List[BasicBlock] = {
     def sliceAtFirstBranch(stmts: List[CoreStmt]) : (List[CoreStmt],Option[Stmt],List[CoreStmt]) = {
       val idxOfFirstBranch = stmts.indexWhere{
         case _ : If => true
@@ -57,7 +58,7 @@ class CommonILToCFG {
         }
         buf.toList
     }
-    finalOutput.map{BasicBlock.apply}.toList
+    finalOutput.map{BasicBlock.apply(methodSig)}.toList
   }
   def insertAssume(cfg: CFG) : CFG = {
     cfg.nodes.foreach{ node =>
@@ -94,10 +95,10 @@ class CommonILToCFG {
     }
     cfg
   }
-  def transform(stmts: List[CoreStmt]) : CFG = {
+  def transform(method: Method) : CFG = {
     def findByFirstStmt(blocks: List[BasicBlock], stmt: Stmt) : Option[BasicBlock] = blocks.find{_.data.getStmts.head == stmt}
     val entryBlock = BasicBlock.getEntryBlock()
-    val basicBlocks = entryBlock::makeBasicBlocks(stmts)
+    val basicBlocks = entryBlock::makeBasicBlocks(method.name, method.statements)
     val exitBlock = BasicBlock.getExitBlock()
     val edges = basicBlocks.sliding(2).foldLeft(List.empty[BasicEdge]) {
       (edgeList,blockOfTwo) =>
