@@ -10,7 +10,7 @@ object MemElems {
   abstract class AbsValue[+A,+D]
   class AbsObject[A : ArithmeticOps, D : LatticeWithTopOps] extends AbsValue {
     implicit val absValueOps = AbsValue.ops[A,D]
-    private var rawFieldMap = MapDom.empty[String,AbsValue[A,D]]
+    protected[mem] var rawFieldMap = MapDom.empty[String,AbsValue[A,D]]
     def \/(that: AbsObject[A,D]) : AbsObject[A,D] = {
       val newFieldMap = MapDom.ops[String,AbsValue[A,D]].\/(rawFieldMap,that.rawFieldMap)
       val newObject = new AbsObject[A,D]

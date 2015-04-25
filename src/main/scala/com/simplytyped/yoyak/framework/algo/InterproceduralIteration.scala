@@ -37,9 +37,10 @@ trait InterproceduralIteration[A,D,M<:MemDomLike[A,D,M]] extends FlowSensitiveIt
     edgeTy match {
       case IntraEdge => input
       case InterEdge(retVar) =>
-        if(retVar.isEmpty) input.remove(returningPlaceholder)
+        // ideally, we should remove all objects where they're unable to be accessed without the return variable
+        if(retVar.isEmpty) input.remove(localize.returningPlaceholder)
         else {
-          val data = input.get(returningPlaceholder)
+          val data = input.get(localize.returningPlaceholder)
           input.update(retVar.get->data)
         }
     }
@@ -117,13 +118,11 @@ trait InterproceduralIteration[A,D,M<:MemDomLike[A,D,M]] extends FlowSensitiveIt
     }
   }
 
-  val returningPlaceholder = Local("$__ret")
-
   def returning(block: BasicBlock, returnStmt: Return, input: M, map: MapDom[BasicBlock,M]) : MapDom[BasicBlock,M] = {
     val returnValOpt = returnStmt.v.map{input.get}
     val localizedMemory = localize.deleteLocals(input)
     val returningMemory = returnValOpt.foldLeft(localizedMemory) {
-      case (m,ret) => m.update(returningPlaceholder,ret)
+      case (m,ret) => m.update(localize.returningPlaceholder,ret)
     }
     val exitNode = getNextBlocks(block)
     exitNode.foldLeft(map) {

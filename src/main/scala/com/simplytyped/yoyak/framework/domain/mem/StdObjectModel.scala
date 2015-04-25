@@ -10,7 +10,7 @@ trait StdObjectModel[A,D,This<:StdObjectModel[A,D,This]] extends MemDomLike[A,D,
   implicit val arithOps : ArithmeticOps[A]
   implicit val boxedOps : LatticeWithTopOps[D]
 
-  protected var rawMap = MapDom.empty[AbsAddr,AbsValue[A,D]](AbsValue.ops[A,D])
+  protected[mem] var rawMap = MapDom.empty[AbsAddr,AbsValue[A,D]](AbsValue.ops[A,D])
 
   def alloc(loc: Loc) : This = {
     val newObj = new AbsObject[A,D]
