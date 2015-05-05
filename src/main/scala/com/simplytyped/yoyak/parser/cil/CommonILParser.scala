@@ -72,7 +72,7 @@ object CommonILParser {
   case class If(cond: Value, thenBlock: Block, elseBlock: Block) extends CILStmt
   case class While(cond: Value, loop: Block) extends CILStmt
   case class Assign(lv: Ident, rv: Value) extends CILStmt
-  case class Invoke(ret: Option[Ident], callee: Ident, params: List[Value]) extends CILStmt
+  case class Invoke(ret: Option[Ident], callee: Ident, args: List[Value]) extends CILStmt
   case class Return(v: Option[Value]) extends CILStmt
 
   abstract class Value extends Positional
