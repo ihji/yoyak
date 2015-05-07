@@ -1,8 +1,10 @@
 package com.simplytyped.yoyak.framework.domain.arith
 
-import com.simplytyped.yoyak.framework.domain.ArithmeticOps
+import com.simplytyped.yoyak.framework.domain.{Galois, ArithmeticOps}
 import com.simplytyped.yoyak.framework.domain.arith.Interval._
-import com.simplytyped.yoyak.il.CommonIL.Value.Constant
+import com.simplytyped.yoyak.il.CommonIL.Value.{IntegerConstant, Constant}
+
+import scala.util.Sorting
 
 sealed abstract class Interval
 case class Interv private (lb: IntWithInfMinus, ub: IntWithInf) extends Interval {
@@ -16,19 +18,38 @@ object Interv {
     if(lb == IInfMinus && ub == IInf) IntervTop
     else Interv(lb,ub)
   }
+  def of(v: Int) : Interval = { Interv(IInt(v),IInt(v)) }
 }
 case object IntervBottom extends Interval
 case object IntervTop extends Interval
 
 object Interval {
-  sealed trait IntWithInf
-  sealed trait IntWithInfMinus
+  class IntervalInt extends Galois {
+    type Conc = Int
+    type Abst = Interval
+  }
+
+  abstract class IntWithInfs extends Ordered[IntWithInfs] {
+    override def compare(that: IntWithInfs): Int = {
+      (this,that) match {
+        case (IInf,IInf) => 0
+        case (IInf,_) => 1
+        case (IInfMinus,IInfMinus) => 0
+        case (IInfMinus,_) => -1
+        case (IInt(_),IInf) => -1
+        case (IInt(_),IInfMinus) => 1
+        case (IInt(v1),IInt(v2)) => v1 - v2
+      }
+    }
+  }
+  sealed trait IntWithInf extends IntWithInfs
+  sealed trait IntWithInfMinus extends IntWithInfs
 
   case class IInt(v: Int) extends IntWithInf with IntWithInfMinus
   case object IInf extends IntWithInf
   case object IInfMinus extends IntWithInfMinus
 
-  implicit val arithOps : ArithmeticOps[Interval] = new ArithmeticOps[Interval] {
+  implicit val arithOps : ArithmeticOps[IntervalInt] = new ArithmeticOps[IntervalInt] {
     override def +(lhs: Interval, rhs: Interval): Interval = {
       (lhs,rhs) match {
         case (IntervBottom,_) => IntervBottom
@@ -50,19 +71,104 @@ object Interval {
       }
     }
 
-    override def /(lhs: Interval, rhs: Interval): Interval = ???
+    override def /(lhs: Interval, rhs: Interval): Interval = {
+      def divBound(a: IntWithInfs, b: IntWithInfs) : Option[IntWithInfs] = {
+        (a,b) match {
+          case (IInf,IInf) => Some(IInf)
+          case (IInf,IInfMinus) => Some(IInfMinus)
+          case (IInf,IInt(v)) => if(v > 0) Some(IInf) else if(v == 0) None else Some(IInfMinus)
+          case (IInfMinus,IInf) => Some(IInfMinus)
+          case (IInfMinus,IInfMinus) => Some(IInf)
+          case (IInfMinus,IInt(v)) => if(v > 0) Some(IInfMinus) else if(v == 0) None else Some(IInf)
+          case (IInt(_),IInf) => Some(IInt(0))
+          case (IInt(_),IInfMinus) => Some(IInt(0))
+          case (IInt(v1),IInt(v2)) => if(v2 != 0) Some(IInt(v1/v2)) else None
+        }
+      }
+      (lhs,rhs) match {
+        case (IntervBottom,_) => IntervBottom
+        case (_,IntervBottom) => IntervBottom
+        case (IntervTop,_) => IntervTop
+        case (_,IntervTop) => IntervTop
+        case (Interv(lb1,ub1),Interv(lb2,ub2)) =>
+          val values = Array(divBound(lb1,lb2),divBound(lb1,ub2),divBound(ub1,lb2),divBound(ub1,ub2)).flatten
+          if(values.isEmpty) IntervBottom
+          else {
+            Sorting.quickSort(values)
+            val newlb = values.head.asInstanceOf[IntWithInfMinus] // this couldn't be IInf
+            val newub = values.last.asInstanceOf[IntWithInf] // this couldn't be IInfMinus
+            Interv.in(newlb, newub)
+          }
+      }
+    }
 
-    override def lift(const: Constant): Interval = ???
+    override def lift(const: Constant): Interval = {
+      const match {
+        case IntegerConstant(v) => Interv.of(v)
+        case _ => IntervBottom // hmm...
+      }
+    }
 
-    override def -(lhs: Interval, rhs: Interval): Interval = ???
+    override def -(lhs: Interval, rhs: Interval): Interval = {
+      (lhs,rhs) match {
+        case (IntervBottom,_) => IntervBottom
+        case (_,IntervBottom) => IntervBottom
+        case (IntervTop,_) => IntervTop
+        case (_,IntervTop) => IntervTop
+        case (Interv(lb1,ub1),Interv(lb2,ub2)) =>
+          val newlb = (lb1,ub2) match { /* lb1 - ub2 */
+            case (IInfMinus,_) => IInfMinus
+            case (_,IInf) => IInfMinus
+            case (IInt(v1),IInt(v2)) => IInt(v1-v2)
+          }
+          val newub = (ub1,lb2) match { /* ub1 - lb2 */
+            case (IInf,_) => IInf
+            case (_,IInfMinus) => IInf
+            case (IInt(v1),IInt(v2)) => IInt(v1-v2)
+          }
+          Interv.in(newlb,newub)
+      }
+    }
 
-    override def *(lhs: Interval, rhs: Interval): Interval = ???
+    override def *(lhs: Interval, rhs: Interval): Interval = {
+      def multBound(a: IntWithInfs, b: IntWithInfs) : IntWithInfs = {
+        (a,b) match {
+          case (IInf,IInf) => IInf
+          case (IInf,IInfMinus) => IInfMinus
+          case (IInf,IInt(v)) => if(v > 0) IInf else if(v == 0) IInt(0) else IInfMinus
+          case (IInfMinus,IInf) => multBound(b,a)
+          case (IInfMinus,IInfMinus) => IInf
+          case (IInfMinus,IInt(v)) => if(v > 0) IInfMinus else if(v == 0) IInt(0) else IInf
+          case (IInt(_),IInf) => multBound(b,a)
+          case (IInt(_),IInfMinus) => multBound(b,a)
+          case (IInt(v1),IInt(v2)) => IInt(v1*v2)
+        }
+      }
+      (lhs,rhs) match {
+        case (IntervBottom,_) => IntervBottom
+        case (_,IntervBottom) => IntervBottom
+        case (IntervTop,_) => IntervTop
+        case (_,IntervTop) => IntervTop
+        case (Interv(lb1,ub1),Interv(lb2,ub2)) =>
+          val values = Array(multBound(lb1,lb2),multBound(lb1,ub2),multBound(ub1,lb2),multBound(ub1,ub2))
+          Sorting.quickSort(values)
+          val newlb = values.head.asInstanceOf[IntWithInfMinus] // this couldn't be IInf
+          val newub = values.last.asInstanceOf[IntWithInf] // this couldn't be IInfMinus
+          Interv.in(newlb,newub)
+      }
+    }
 
-    override def unlift[T: Numeric](abs: Interval): Option[Set[T]] = ???
+    override def unlift(abs: Interval): Option[Set[Int]] = {
+      abs match {
+        case IntervBottom => Some(Set.empty)
+        case Interv(IInt(v1),IInt(v2)) => Some((v1 to v2).toSet)
+        case _ => None // impossible to concretize infinite sets. better ideas?
+      }
+    }
 
-    override def isTop(v: Interval): Boolean = ???
+    override def isTop(v: Interval): Boolean = { v == IntervTop }
 
-    override def bottom: Interval = ???
+    override def bottom: Interval = IntervBottom
 
     override def \/(lhs: Interval, rhs: Interval): Interval = ???
 

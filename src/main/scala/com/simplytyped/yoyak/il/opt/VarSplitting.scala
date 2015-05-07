@@ -1,5 +1,6 @@
 package com.simplytyped.yoyak.il.opt
 
+import com.simplytyped.yoyak.framework.domain.Galois.GaloisIdentity
 import com.simplytyped.yoyak.framework.domain.MapDom
 import com.simplytyped.yoyak.il.CommonIL.Statement._
 import com.simplytyped.yoyak.il.CommonIL.Type
@@ -7,6 +8,7 @@ import com.simplytyped.yoyak.il.CommonIL.Value.Local
 import com.simplytyped.yoyak.il.CommonILHelper
 import com.simplytyped.yoyak.il.cfg.{BasicBlock, CFG}
 import com.simplytyped.yoyak.il.opt.analysis.DefReachability
+import com.simplytyped.yoyak.il.opt.analysis.DefReachability.SetCoreStmt
 import scala.collection.mutable.{Set => MSet}
 
 class VarSplitting {
@@ -14,7 +16,7 @@ class VarSplitting {
   private def getNewLocal() = {nameCounter += 1; Local("$v"+nameCounter)}
 
   var renameMap = Map.empty[CoreStmt,Local]
-  private def generateRenameMap(defMap: MapDom[BasicBlock,MapDom[Local,Set[CoreStmt]]]) {
+  private def generateRenameMap(defMap: MapDom[BasicBlock,GaloisIdentity[MapDom[Local,SetCoreStmt]]]) {
     val defGroup = defMap.foldLeft(Map.empty[CoreStmt,MSet[CoreStmt]]) {
       case (defGroupMap,(_,m)) => m.foldLeft(defGroupMap) {
         case (defGroupMap,(_,stmtSet)) =>
@@ -33,7 +35,7 @@ class VarSplitting {
     }.toMap
     this.renameMap = renameMap
   }
-  private def findNewLocal(defMap: MapDom[Local,Set[CoreStmt]])(old: Local) : Local = {
+  private def findNewLocal(defMap: MapDom[Local,SetCoreStmt])(old: Local) : Local = {
     val stmts = defMap.get(old)
     if(stmts.isEmpty) old
     else {
@@ -48,7 +50,7 @@ class VarSplitting {
       }
     }
   }
-  private def renameLocal(defMap: MapDom[Local,Set[CoreStmt]])(stmt: CoreStmt) : (MapDom[Local,Set[CoreStmt]],CoreStmt) = {
+  private def renameLocal(defMap: MapDom[Local,SetCoreStmt])(stmt: CoreStmt) : (MapDom[Local,SetCoreStmt],CoreStmt) = {
     import DefReachability.absTransfer
     val newStmt1 = CommonILHelper.substituteLocalUse(findNewLocal(defMap))(stmt)
     val nextMap = absTransfer.transfer(defMap,stmt)

@@ -1,15 +1,16 @@
 package com.simplytyped.yoyak.framework.algo
 
-import com.simplytyped.yoyak.framework.domain.{MapDom, LatticeOps}
+import com.simplytyped.yoyak.framework.domain.Galois.GaloisIdentity
+import com.simplytyped.yoyak.framework.domain.{Galois, MapDom, LatticeOps}
 import com.simplytyped.yoyak.il.cfg.BasicBlock
 
-trait FlowSensitiveFixedPointComputation[D] extends FlowSensitiveIteration[D] with CfgNavigator[D] {
+trait FlowSensitiveFixedPointComputation[D<:Galois] extends FlowSensitiveIteration[D] with CfgNavigator[D] {
   implicit val ops : LatticeOps[D]
-  implicit val mapDomOps : LatticeOps[MapDom[BasicBlock,D]]
+  implicit val mapDomOps : LatticeOps[GaloisIdentity[MapDom[BasicBlock,D]]]
 
   val worklist = Worklist.empty[BasicBlock]
 
-  private def getInput(map: MapDom[BasicBlock,D], inputs: Seq[D]) : D = {
+  private def getInput(map: MapDom[BasicBlock,D], inputs: Seq[D#Abst]) : D#Abst = {
     val input = inputs.foldLeft(ops.bottom) {
       (d,i) => ops.\/(d,i)
     }

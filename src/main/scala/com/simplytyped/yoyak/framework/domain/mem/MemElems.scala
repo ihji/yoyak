@@ -1,6 +1,7 @@
 package com.simplytyped.yoyak.framework.domain.mem
 
-import com.simplytyped.yoyak.framework.domain.{LatticeWithTopOps, LatticeOps, MapDom, ArithmeticOps}
+import com.simplytyped.yoyak.framework.domain.Galois.GaloisIdentity
+import com.simplytyped.yoyak.framework.domain._
 
 object MemElems {
   case class AbsAddr(id: String) {
@@ -8,17 +9,17 @@ object MemElems {
   }
 
   abstract class AbsValue[+A,+D]
-  class AbsObject[A : ArithmeticOps, D : LatticeWithTopOps] extends AbsValue {
+  class AbsObject[A <: Galois : ArithmeticOps, D <: Galois : LatticeWithTopOps] extends AbsValue {
     implicit val absValueOps = AbsValue.ops[A,D]
-    protected[mem] var rawFieldMap = MapDom.empty[String,AbsValue[A,D]]
+    protected[mem] var rawFieldMap = MapDom.empty[String,GaloisIdentity[AbsValue[A,D]]]
     def \/(that: AbsObject[A,D]) : AbsObject[A,D] = {
-      val newFieldMap = MapDom.ops[String,AbsValue[A,D]].\/(rawFieldMap,that.rawFieldMap)
+      val newFieldMap = MapDom.ops[String,GaloisIdentity[AbsValue[A,D]]].\/(rawFieldMap,that.rawFieldMap)
       val newObject = new AbsObject[A,D]
       newObject.rawFieldMap = newFieldMap
       newObject
     }
     def <=(that: AbsObject[A,D]) : Option[Boolean] = {
-      MapDom.ops[String,AbsValue[A,D]].<=(rawFieldMap,that.rawFieldMap)
+      MapDom.ops[String,GaloisIdentity[AbsValue[A,D]]].<=(rawFieldMap,that.rawFieldMap)
     }
     def updateField(kv: (String,AbsValue[A,D])) = {
       val newFieldMap = rawFieldMap.update(kv)
@@ -35,13 +36,13 @@ object MemElems {
     def getField(k: String) : AbsValue[A,D] = rawFieldMap.get(k)
   }
   case class AbsRef(id: Set[String]) extends AbsValue
-  case class AbsArith[A](data: A) extends AbsValue[A,Nothing]
-  case class AbsBox[D](data: D) extends AbsValue[Nothing,D]
+  case class AbsArith[A<:Galois](data: A#Abst) extends AbsValue[A,Nothing]
+  case class AbsBox[D<:Galois](data: D#Abst) extends AbsValue[Nothing,D]
   case object AbsBottom extends AbsValue
   case object AbsTop extends AbsValue
 
   object AbsValue {
-    def ops[A : ArithmeticOps, D : LatticeWithTopOps] = new LatticeOps[AbsValue[A,D]] {
+    def ops[A <: Galois : ArithmeticOps, D <: Galois : LatticeWithTopOps] = new LatticeOps[GaloisIdentity[AbsValue[A,D]]] {
       val boxOps   = implicitly[LatticeWithTopOps[D]]
       val arithOps = implicitly[ArithmeticOps[A]]
       override def <=(lhs: AbsValue[A,D], rhs: AbsValue[A,D]): Option[Boolean] = {

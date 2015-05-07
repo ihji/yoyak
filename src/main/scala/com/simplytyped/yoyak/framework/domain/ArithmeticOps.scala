@@ -2,12 +2,12 @@ package com.simplytyped.yoyak.framework.domain
 
 import com.simplytyped.yoyak.il.CommonIL.Value.Constant
 
-trait ArithmeticOps[D] extends LatticeWithTopOps[D] {
-  def +(lhs: D, rhs: D) : D
-  def -(lhs: D, rhs: D) : D
-  def *(lhs: D, rhs: D) : D
-  def /(lhs: D, rhs: D) : D
+trait ArithmeticOps[D <: Galois] extends LatticeWithTopOps[D] {
+  def +(lhs: D#Abst, rhs: D#Abst) : D#Abst
+  def -(lhs: D#Abst, rhs: D#Abst) : D#Abst
+  def *(lhs: D#Abst, rhs: D#Abst) : D#Abst
+  def /(lhs: D#Abst, rhs: D#Abst) : D#Abst
 
-  def lift(const: Constant) : D
-  def unlift[T : Numeric](abs: D) : Option[Set[T]]
+  def lift(const: Constant) : D#Abst
+  def unlift(abs: D#Abst) : Option[Set[D#Conc]]
 }

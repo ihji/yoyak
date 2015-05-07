@@ -1,9 +1,11 @@
 package com.simplytyped.yoyak.analysis
 
+import com.simplytyped.yoyak.analysis.StringAnalysis.{SetString, SetInt}
 import com.simplytyped.yoyak.android.AndroidAPIs
 import com.simplytyped.yoyak.framework.ForwardAnalysis.FlowSensitiveForwardAnalysis
+import com.simplytyped.yoyak.framework.domain.Galois.GaloisIdentity
 import com.simplytyped.yoyak.framework.domain.mem.MemElems.AbsBox
-import com.simplytyped.yoyak.framework.domain.{MapDom, LatticeOps, ArithmeticOps, LatticeWithTopOps}
+import com.simplytyped.yoyak.framework.domain._
 import com.simplytyped.yoyak.framework.domain.mem.MemDom
 import com.simplytyped.yoyak.framework.semantics.AbstractTransferable
 import com.simplytyped.yoyak.il.CommonIL.Statement.{Stmt, Invoke, Assign}
@@ -13,11 +15,11 @@ import com.simplytyped.yoyak.il.cfg.{BasicBlock, CFG}
 class StringAnalysis(cfg: CFG) {
   def run() : List[String] = {
     import StringAnalysis.{absTransfer,memDomOps}
-    val analysis = new FlowSensitiveForwardAnalysis[MemDom[Set[Int],Set[String]]](cfg)
+    val analysis = new FlowSensitiveForwardAnalysis[GaloisIdentity[MemDom[SetInt,SetString]]](cfg)
     val output = analysis.compute
     check(output)
   }
-  def findHost(stmt: Stmt, mem: MemDom[Set[Int],Set[String]]) : List[String] = {
+  def findHost(stmt: Stmt, mem: MemDom[SetInt,SetString]) : List[String] = {
     stmt match {
       case Invoke(_,callee) if AndroidAPIs.internet(callee.callee) => callee.args.foldLeft(List.empty[String]) {
         case (list,v) =>
@@ -33,7 +35,7 @@ class StringAnalysis(cfg: CFG) {
       case _ => List.empty[String]
     }
   }
-  def check(output: MapDom[BasicBlock,MemDom[Set[Int],Set[String]]]) : List[String] = {
+  def check(output: MapDom[BasicBlock,GaloisIdentity[MemDom[SetInt,SetString]]]) : List[String] = {
     cfg.nodes.foldLeft(List.empty[String]) {
       (list,node) =>
         val prevs = cfg.getPrevs(node)
@@ -50,15 +52,24 @@ class StringAnalysis(cfg: CFG) {
 }
 
 object StringAnalysis {
-  implicit val absTransfer : AbstractTransferable[MemDom[Set[Int],Set[String]]] = new AbstractTransferable[MemDom[Set[Int],Set[String]]] {
-    override protected def transferAssign(stmt: Assign, input: MemDom[Set[Int], Set[String]]): MemDom[Set[Int], Set[String]] = {
+  class SetInt extends Galois {
+    type Conc = Int
+    type Abst = Set[Int]
+  }
+  class SetString extends Galois {
+    type Conc = String
+    type Abst = Set[String]
+  }
+
+  implicit val absTransfer : AbstractTransferable[GaloisIdentity[MemDom[SetInt,SetString]]] = new AbstractTransferable[GaloisIdentity[MemDom[SetInt,SetString]]] {
+    override protected def transferAssign(stmt: Assign, input: MemDom[SetInt, SetString]): MemDom[SetInt, SetString] = {
       stmt.rv match {
-        case StringConstant(s) => input.update(stmt.lv->AbsBox(Set(s)))
+        case StringConstant(s) => input.update(stmt.lv->AbsBox[SetString](Set(s)))
         case _ => input
       }
     }
   }
-  implicit val boxedOps : LatticeWithTopOps[Set[String]] = new LatticeWithTopOps[Set[String]] {
+  implicit val boxedOps : LatticeWithTopOps[SetString] = new LatticeWithTopOps[SetString] {
     override def isTop(v: Set[String]): Boolean = false
 
     override def bottom: Set[String] = Set.empty[String]
@@ -70,7 +81,7 @@ object StringAnalysis {
       else if(rhs subsetOf lhs) Some(false)
       else None
   }
-  implicit val arithOps : ArithmeticOps[Set[Int]] = new ArithmeticOps[Set[Int]] {
+  implicit val arithOps : ArithmeticOps[SetInt] = new ArithmeticOps[SetInt] {
     override def +(lhs: Set[Int], rhs: Set[Int]): Set[Int] = ???
 
     override def /(lhs: Set[Int], rhs: Set[Int]): Set[Int] = ???
@@ -81,7 +92,7 @@ object StringAnalysis {
 
     override def lift(const: Constant): Set[Int] = ???
 
-    override def unlift[T: Numeric](abs: Set[Int]): Option[Set[T]] = ???
+    override def unlift(abs: Set[Int]): Option[Set[Int]] = ???
 
     override def isTop(v: Set[Int]): Boolean = false
 
@@ -94,5 +105,5 @@ object StringAnalysis {
       else if(rhs subsetOf lhs) Some(false)
       else None
   }
-  implicit val memDomOps : LatticeOps[MemDom[Set[Int],Set[String]]] = MemDom.ops[Set[Int],Set[String]]
+  implicit val memDomOps : LatticeOps[GaloisIdentity[MemDom[SetInt,SetString]]] = MemDom.ops[SetInt,SetString]
 }

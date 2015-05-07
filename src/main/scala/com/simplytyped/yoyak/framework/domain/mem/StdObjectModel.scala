@@ -1,16 +1,17 @@
 package com.simplytyped.yoyak.framework.domain.mem
 
-import com.simplytyped.yoyak.framework.domain.{LatticeWithTopOps, ArithmeticOps, MapDom}
+import com.simplytyped.yoyak.framework.domain.Galois.GaloisIdentity
+import com.simplytyped.yoyak.framework.domain.{Galois, LatticeWithTopOps, ArithmeticOps, MapDom}
 import com.simplytyped.yoyak.framework.domain.mem.MemElems._
 import com.simplytyped.yoyak.il.CommonIL.ClassName
 import com.simplytyped.yoyak.il.CommonIL.Value._
 import StdObjectModel._
 
-trait StdObjectModel[A,D,This<:StdObjectModel[A,D,This]] extends MemDomLike[A,D,This] with ArrayJoinModel[A,D,This] {
+trait StdObjectModel[A<:Galois,D<:Galois,This<:StdObjectModel[A,D,This]] extends MemDomLike[A,D,This] with ArrayJoinModel[A,D,This] {
   implicit val arithOps : ArithmeticOps[A]
   implicit val boxedOps : LatticeWithTopOps[D]
 
-  protected[mem] var rawMap = MapDom.empty[AbsAddr,AbsValue[A,D]](AbsValue.ops[A,D])
+  protected[mem] var rawMap = MapDom.empty[AbsAddr,GaloisIdentity[AbsValue[A,D]]](AbsValue.ops[A,D])
 
   def alloc(loc: Loc) : This = {
     val newObj = new AbsObject[A,D]
@@ -22,7 +23,7 @@ trait StdObjectModel[A,D,This<:StdObjectModel[A,D,This]] extends MemDomLike[A,D,
     val newRawMap = rawMap.remove(AbsAddr(loc.id))
     builder(newRawMap)
   }
-  private def updateRawMap(map: MapDom[AbsAddr,AbsValue[A,D]], kv: (Loc,AbsValue[A,D])) : MapDom[AbsAddr,AbsValue[A,D]] = {
+  private def updateRawMap(map: MapDom[AbsAddr,GaloisIdentity[AbsValue[A,D]]], kv: (Loc,AbsValue[A,D])) : MapDom[AbsAddr,GaloisIdentity[AbsValue[A,D]]] = {
     val (loc,v) = kv
     loc match {
       case Local(id) => map.update(AbsAddr(id)->v)
@@ -97,7 +98,7 @@ trait StdObjectModel[A,D,This<:StdObjectModel[A,D,This]] extends MemDomLike[A,D,
   def isStaticAddr(addr: AbsAddr) : Boolean = addr.id.startsWith(StdObjectModel.staticPrefix)
   def isDynamicAddr(addr: AbsAddr) : Boolean = addr.id.startsWith(StdObjectModel.dynamicPrefix)
 
-  protected def builder(rawMap: MapDom[AbsAddr,AbsValue[A,D]]) : This
+  protected def builder(rawMap: MapDom[AbsAddr,GaloisIdentity[AbsValue[A,D]]]) : This
 }
 
 object StdObjectModel {
