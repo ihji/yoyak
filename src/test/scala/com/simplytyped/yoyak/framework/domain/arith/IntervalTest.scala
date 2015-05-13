@@ -1,6 +1,7 @@
 package com.simplytyped.yoyak.framework.domain.arith
 
 import com.simplytyped.yoyak.framework.domain.arith.Interval._
+import com.simplytyped.yoyak.framework.domain.arith.IntervalInt.arithOps
 import org.scalatest.{Matchers, FunSuite}
 
 class IntervalTest extends FunSuite with Matchers {

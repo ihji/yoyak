@@ -8,9 +8,14 @@ class DexlibDexTransformerTest extends FunSuite with Matchers {
     val pgm = (new DexlibDexTransformer).translate(dexFile)
 
     import com.simplytyped.yoyak.il.cfg.CommonILToCFG
+    import com.simplytyped.yoyak.analysis.StringAnalysis
     import com.simplytyped.yoyak.il.PrettyPrinter
     val cfg = new CommonILToCFG().transform(pgm.findByMethodName("argTest").head)
-    //println(new PrettyPrinter().toDot(cfg))
+    println(new PrettyPrinter().toDot(cfg))
+
+    val result = new StringAnalysis(cfg).run()
+
+    println(result)
 
     pgm.findByMethodName("argTest").nonEmpty should be (true)
   }

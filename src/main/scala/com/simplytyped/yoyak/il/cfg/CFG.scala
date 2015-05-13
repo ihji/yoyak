@@ -9,6 +9,9 @@ case class CFG(nodes: Set[BasicBlock], edges: Set[BasicEdge], nexts: Map[BasicBl
   }
   def getEntry : Option[BasicBlock] = nodes.find{_.isEntry}
   def getExit : Option[BasicBlock] = nodes.find{_.isExit}
+  def findBasicBlockByLineNumber(lineNumber: Int) : Option[BasicBlock] = {
+    nodes.find{_.data.getStmts.exists{_.pos.startLine == lineNumber}}
+  }
 }
 
 object CFG {

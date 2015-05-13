@@ -12,6 +12,7 @@ class CommonILToCFG {
         case _ : If => true
         case _ : Goto => true
         case _ : Invoke => true
+        case _ : Return => true
         case _ => false
       }
       if(idxOfFirstBranch == -1) (stmts,None,List.empty[CoreStmt])
@@ -21,6 +22,7 @@ class CommonILToCFG {
           case If(_,t) => Some(t.getStmt)
           case Goto(t) => Some(t.getStmt)
           case _ : Invoke => None
+          case _ : Return => None
         }
         (firstStmts,target,secondStmts)
       }

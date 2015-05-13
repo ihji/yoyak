@@ -1,9 +1,9 @@
 package com.simplytyped.yoyak.analysis
 
-import com.simplytyped.yoyak.analysis.StringAnalysis.{SetString, SetInt}
+import com.simplytyped.yoyak.analysis.StringAnalysis.SetInt
 import com.simplytyped.yoyak.android.AndroidAPIs
 import com.simplytyped.yoyak.framework.ForwardAnalysis.FlowSensitiveForwardAnalysis
-import com.simplytyped.yoyak.framework.domain.Galois.GaloisIdentity
+import com.simplytyped.yoyak.framework.domain.Galois.{SetAbstraction, GaloisIdentity}
 import com.simplytyped.yoyak.framework.domain.mem.MemElems.AbsBox
 import com.simplytyped.yoyak.framework.domain._
 import com.simplytyped.yoyak.framework.domain.mem.MemDom
@@ -15,11 +15,11 @@ import com.simplytyped.yoyak.il.cfg.{BasicBlock, CFG}
 class StringAnalysis(cfg: CFG) {
   def run() : List[String] = {
     import StringAnalysis.{absTransfer,memDomOps}
-    val analysis = new FlowSensitiveForwardAnalysis[GaloisIdentity[MemDom[SetInt,SetString]]](cfg)
+    val analysis = new FlowSensitiveForwardAnalysis[GaloisIdentity[MemDom[SetInt,SetAbstraction[String]]]](cfg)
     val output = analysis.compute
     check(output)
   }
-  def findHost(stmt: Stmt, mem: MemDom[SetInt,SetString]) : List[String] = {
+  def findHost(stmt: Stmt, mem: MemDom[SetInt,SetAbstraction[String]]) : List[String] = {
     stmt match {
       case Invoke(_,callee) if AndroidAPIs.internet(callee.callee) => callee.args.foldLeft(List.empty[String]) {
         case (list,v) =>
@@ -35,7 +35,7 @@ class StringAnalysis(cfg: CFG) {
       case _ => List.empty[String]
     }
   }
-  def check(output: MapDom[BasicBlock,GaloisIdentity[MemDom[SetInt,SetString]]]) : List[String] = {
+  def check(output: MapDom[BasicBlock,GaloisIdentity[MemDom[SetInt,SetAbstraction[String]]]]) : List[String] = {
     cfg.nodes.foldLeft(List.empty[String]) {
       (list,node) =>
         val prevs = cfg.getPrevs(node)
@@ -56,31 +56,16 @@ object StringAnalysis {
     type Conc = Int
     type Abst = Set[Int]
   }
-  class SetString extends Galois {
-    type Conc = String
-    type Abst = Set[String]
-  }
 
-  implicit val absTransfer : AbstractTransferable[GaloisIdentity[MemDom[SetInt,SetString]]] = new AbstractTransferable[GaloisIdentity[MemDom[SetInt,SetString]]] {
-    override protected def transferAssign(stmt: Assign, input: MemDom[SetInt, SetString]): MemDom[SetInt, SetString] = {
+  implicit val absTransfer : AbstractTransferable[GaloisIdentity[MemDom[SetInt,SetAbstraction[String]]]] = new AbstractTransferable[GaloisIdentity[MemDom[SetInt,SetAbstraction[String]]]] {
+    override protected def transferAssign(stmt: Assign, input: MemDom[SetInt, SetAbstraction[String]]): MemDom[SetInt, SetAbstraction[String]] = {
       stmt.rv match {
-        case StringConstant(s) => input.update(stmt.lv->AbsBox[SetString](Set(s)))
-        case _ => input
+        case StringConstant(s) => input.update(stmt.lv->AbsBox[SetAbstraction[String]](Set(s)))
+        case _ => input // XXX: should implement complete object model (object allocation, field reference, etc.)
       }
     }
   }
-  implicit val boxedOps : LatticeWithTopOps[SetString] = new LatticeWithTopOps[SetString] {
-    override def isTop(v: Set[String]): Boolean = false
 
-    override def bottom: Set[String] = Set.empty[String]
-
-    override def \/(lhs: Set[String], rhs: Set[String]): Set[String] = lhs ++ rhs
-
-    override def <=(lhs: Set[String], rhs: Set[String]): Option[Boolean] =
-      if(lhs subsetOf rhs) Some(true)
-      else if(rhs subsetOf lhs) Some(false)
-      else None
-  }
   implicit val arithOps : ArithmeticOps[SetInt] = new ArithmeticOps[SetInt] {
     override def +(lhs: Set[Int], rhs: Set[Int]): Set[Int] = ???
 
@@ -105,5 +90,5 @@ object StringAnalysis {
       else if(rhs subsetOf lhs) Some(false)
       else None
   }
-  implicit val memDomOps : LatticeOps[GaloisIdentity[MemDom[SetInt,SetString]]] = MemDom.ops[SetInt,SetString]
+  implicit val memDomOps : LatticeOps[GaloisIdentity[MemDom[SetInt,SetAbstraction[String]]]] = MemDom.ops[SetInt,SetAbstraction[String]]
 }
