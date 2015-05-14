@@ -13,11 +13,11 @@ trait StdObjectModel[A<:Galois,D<:Galois,This<:StdObjectModel[A,D,This]] extends
 
   protected[mem] var rawMap = MapDom.empty[AbsAddr,GaloisIdentity[AbsValue[A,D]]](AbsValue.ops[A,D])
 
-  def alloc(loc: Loc) : This = {
-    val newObj = new AbsObject[A,D]
+  def alloc : (AbsRef,This) = {
+    val newObj = new AbsObject
     val newAddr = getNewAddr()
-    val newRawMap = updateRawMap(rawMap,loc->newAddr.toAbsRef).update(newAddr->newObj)
-    builder(newRawMap)
+    val newRawMap = rawMap.update(newAddr->newObj)
+    (newAddr.toAbsRef,builder(newRawMap))
   }
   def remove(loc: Local) : This = {
     val newRawMap = rawMap.remove(AbsAddr(loc.id))
@@ -36,7 +36,7 @@ trait StdObjectModel[A<:Galois,D<:Galois,This<:StdObjectModel[A,D,This]] extends
               (m,i) =>
                 val obj = map.get(AbsAddr(i))
                 val newObj = obj match {
-                  case obj: AbsObject[A,D] =>
+                  case obj: StdObjectModel[A,D,This]#AbsObject =>
                     if(ids.size == 1) obj.updateField(field->v)
                     else obj.weakUpdateField(field->v)
                   case _ => obj // error case: should be reported
@@ -49,10 +49,10 @@ trait StdObjectModel[A<:Galois,D<:Galois,This<:StdObjectModel[A,D,This]] extends
         val staticAddr = getStaticAddr(clazz)
         val staticObj = map.get(staticAddr)
         val newStaticObj = staticObj match {
-          case obj: AbsObject[A,D] =>
+          case obj: StdObjectModel[A,D,This]#AbsObject =>
             obj.weakUpdateField(field->v)
           case _ =>
-            val obj = new AbsObject[A,D]
+            val obj = new AbsObject
             obj.updateField(field->v)
         }
         map.update(staticAddr->newStaticObj)
@@ -77,7 +77,7 @@ trait StdObjectModel[A<:Galois,D<:Galois,This<:StdObjectModel[A,D,This]] extends
               (v,id) =>
                 val obj = rawMap.get(AbsAddr(id))
                 val fieldValue = obj match {
-                  case obj: AbsObject[A,D] => obj.getField(field)
+                  case obj: StdObjectModel[A,D,This]#AbsObject => obj.getField(field)
                   case _ => AbsBottom
                 }
                 AbsValue.ops[A,D].\/(v,fieldValue)
@@ -88,7 +88,7 @@ trait StdObjectModel[A<:Galois,D<:Galois,This<:StdObjectModel[A,D,This]] extends
         val staticAddr = getStaticAddr(clazz)
         val obj = rawMap.get(staticAddr)
         obj match {
-          case obj: AbsObject[A,D] => obj.getField(field)
+          case obj: StdObjectModel[A,D,This]#AbsObject => obj.getField(field)
           case _ => AbsBottom
         }
       case Param(i) =>
@@ -99,6 +99,24 @@ trait StdObjectModel[A<:Galois,D<:Galois,This<:StdObjectModel[A,D,This]] extends
   def isDynamicAddr(addr: AbsAddr) : Boolean = addr.id.startsWith(StdObjectModel.dynamicPrefix)
 
   protected def builder(rawMap: MapDom[AbsAddr,GaloisIdentity[AbsValue[A,D]]]) : This
+
+  class AbsObject extends AbsValue[A,D] {
+    implicit val absValueOps = AbsValue.ops[A,D]
+    protected[mem] var rawFieldMap = MapDom.empty[String,GaloisIdentity[AbsValue[A,D]]]
+    def updateField(kv: (String,AbsValue[A,D])) = {
+      val newFieldMap = rawFieldMap.update(kv)
+      val newObject = new AbsObject
+      newObject.rawFieldMap = newFieldMap
+      newObject
+    }
+    def weakUpdateField(kv: (String,AbsValue[A,D])) = {
+      val newFieldMap = rawFieldMap.weakUpdate(kv)
+      val newObject = new AbsObject
+      newObject.rawFieldMap = newFieldMap
+      newObject
+    }
+    def getField(k: String) : AbsValue[A,D] = rawFieldMap.get(k)
+  }
 }
 
 object StdObjectModel {

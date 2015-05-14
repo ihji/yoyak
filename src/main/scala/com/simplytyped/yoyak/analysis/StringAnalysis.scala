@@ -4,11 +4,12 @@ import com.simplytyped.yoyak.analysis.StringAnalysis.SetInt
 import com.simplytyped.yoyak.android.AndroidAPIs
 import com.simplytyped.yoyak.framework.ForwardAnalysis.FlowSensitiveForwardAnalysis
 import com.simplytyped.yoyak.framework.domain.Galois.{SetAbstraction, GaloisIdentity}
-import com.simplytyped.yoyak.framework.domain.mem.MemElems.AbsBox
+import com.simplytyped.yoyak.framework.domain.mem.MemElems.{AbsTop, AbsBox}
 import com.simplytyped.yoyak.framework.domain._
 import com.simplytyped.yoyak.framework.domain.mem.MemDom
-import com.simplytyped.yoyak.framework.semantics.AbstractTransferable
-import com.simplytyped.yoyak.il.CommonIL.Statement.{Stmt, Invoke, Assign}
+import com.simplytyped.yoyak.framework.semantics.StdSemantics
+import com.simplytyped.yoyak.il.CommonIL.Statement.{Stmt, Invoke}
+import com.simplytyped.yoyak.il.CommonIL.Value
 import com.simplytyped.yoyak.il.CommonIL.Value.{Loc, StringConstant, Constant}
 import com.simplytyped.yoyak.il.cfg.{BasicBlock, CFG}
 
@@ -57,11 +58,12 @@ object StringAnalysis {
     type Abst = Set[Int]
   }
 
-  implicit val absTransfer : AbstractTransferable[GaloisIdentity[MemDom[SetInt,SetAbstraction[String]]]] = new AbstractTransferable[GaloisIdentity[MemDom[SetInt,SetAbstraction[String]]]] {
-    override protected def transferAssign(stmt: Assign, input: MemDom[SetInt, SetAbstraction[String]]): MemDom[SetInt, SetAbstraction[String]] = {
-      stmt.rv match {
-        case StringConstant(s) => input.update(stmt.lv->AbsBox[SetAbstraction[String]](Set(s)))
-        case _ => input // XXX: should implement complete object model (object allocation, field reference, etc.)
+  implicit val absTransfer : StdSemantics[SetInt,SetAbstraction[String],MemDom[SetInt,SetAbstraction[String]]] = new StdSemantics[SetInt,SetAbstraction[String],MemDom[SetInt,SetAbstraction[String]]] {
+    val arithOps = StringAnalysis.arithOps
+    override protected def evalConstant(v: Value.Constant, input: MemDom[SetInt,SetAbstraction[String]]) = {
+      v match {
+        case StringConstant(s) => (AbsBox[SetAbstraction[String]](Set(s)),input)
+        case _ => (AbsTop,input)
       }
     }
   }

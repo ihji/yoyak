@@ -17,10 +17,11 @@ class MemDomTest extends FunSuite with Matchers {
   }
   test("add and retrieve things in instance field") {
     val mem = MemDom.empty[SetInt,SetString]
-    val mem2 = mem.alloc(Local("x"))
-    val mem3 = mem2.update(InstanceFieldRef(Local("x"),"f")->AbsArith[SetInt](Set(10)))
-    mem3.get(InstanceFieldRef(Local("x"),"f")) should be (AbsArith[SetInt](Set(10)))
-    mem3.get(InstanceFieldRef(Local("x"),"g")) should be (AbsBottom)
+    val (newRef,mem2) = mem.alloc
+    val mem3 = mem2.update(Local("x")->newRef)
+    val mem4 = mem3.update(InstanceFieldRef(Local("x"),"f")->AbsArith[SetInt](Set(10)))
+    mem4.get(InstanceFieldRef(Local("x"),"f")) should be (AbsArith[SetInt](Set(10)))
+    mem4.get(InstanceFieldRef(Local("x"),"g")) should be (AbsBottom)
   }
   test("add and retrieve things in static field") {
     val mem = MemDom.empty[SetInt,SetString]
@@ -30,18 +31,20 @@ class MemDomTest extends FunSuite with Matchers {
   }
   test("add and retrieve things in array") {
     val mem = MemDom.empty[SetInt,SetString]
-    val mem2 = mem.alloc(Local("x"))
-    val mem3 = mem2.update(ArrayRef(Local("x"),IntegerConstant(1))->AbsArith[SetInt](Set(10)))
-    mem3.get(ArrayRef(Local("x"),IntegerConstant(1))) should be (AbsArith[SetInt](Set(10)))
-    mem3.get(ArrayRef(Local("x"),IntegerConstant(2))) should be (AbsArith[SetInt](Set(10)))
+    val (newref,mem2) = mem.alloc
+    val mem3 = mem2.update(Local("x")->newref)
+    val mem4 = mem3.update(ArrayRef(Local("x"),IntegerConstant(1))->AbsArith[SetInt](Set(10)))
+    mem4.get(ArrayRef(Local("x"),IntegerConstant(1))) should be (AbsArith[SetInt](Set(10)))
+    mem4.get(ArrayRef(Local("x"),IntegerConstant(2))) should be (AbsArith[SetInt](Set(10)))
   }
   test("add and retrieve things in array with join") {
     val mem = MemDom.empty[SetInt,SetString]
-    val mem2 = mem.alloc(Local("x"))
-    val mem3 = mem2.update(ArrayRef(Local("x"),IntegerConstant(1))->AbsArith[SetInt](Set(10)))
-    val mem4 = mem3.update(ArrayRef(Local("x"),IntegerConstant(2))->AbsArith[SetInt](Set(20)))
-    mem4.get(ArrayRef(Local("x"),IntegerConstant(1))) should be (AbsArith[SetInt](Set(10,20)))
-    mem4.get(ArrayRef(Local("x"),IntegerConstant(2))) should be (AbsArith[SetInt](Set(10,20)))
+    val (newref,mem2) = mem.alloc
+    val mem3 = mem2.update(Local("x")->newref)
+    val mem4 = mem3.update(ArrayRef(Local("x"),IntegerConstant(1))->AbsArith[SetInt](Set(10)))
+    val mem5 = mem4.update(ArrayRef(Local("x"),IntegerConstant(2))->AbsArith[SetInt](Set(20)))
+    mem5.get(ArrayRef(Local("x"),IntegerConstant(1))) should be (AbsArith[SetInt](Set(10,20)))
+    mem5.get(ArrayRef(Local("x"),IntegerConstant(2))) should be (AbsArith[SetInt](Set(10,20)))
   }
 }
 

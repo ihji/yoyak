@@ -9,32 +9,7 @@ object MemElems {
   }
 
   abstract class AbsValue[+A,+D]
-  class AbsObject[A <: Galois : ArithmeticOps, D <: Galois : LatticeWithTopOps] extends AbsValue {
-    implicit val absValueOps = AbsValue.ops[A,D]
-    protected[mem] var rawFieldMap = MapDom.empty[String,GaloisIdentity[AbsValue[A,D]]]
-    def \/(that: AbsObject[A,D]) : AbsObject[A,D] = {
-      val newFieldMap = MapDom.ops[String,GaloisIdentity[AbsValue[A,D]]].\/(rawFieldMap,that.rawFieldMap)
-      val newObject = new AbsObject[A,D]
-      newObject.rawFieldMap = newFieldMap
-      newObject
-    }
-    def <=(that: AbsObject[A,D]) : Option[Boolean] = {
-      MapDom.ops[String,GaloisIdentity[AbsValue[A,D]]].<=(rawFieldMap,that.rawFieldMap)
-    }
-    def updateField(kv: (String,AbsValue[A,D])) = {
-      val newFieldMap = rawFieldMap.update(kv)
-      val newObject = new AbsObject[A,D]
-      newObject.rawFieldMap = newFieldMap
-      newObject
-    }
-    def weakUpdateField(kv: (String,AbsValue[A,D])) = {
-      val newFieldMap = rawFieldMap.weakUpdate(kv)
-      val newObject = new AbsObject[A,D]
-      newObject.rawFieldMap = newFieldMap
-      newObject
-    }
-    def getField(k: String) : AbsValue[A,D] = rawFieldMap.get(k)
-  }
+
   case class AbsRef(id: Set[String]) extends AbsValue
   case class AbsArith[A<:Galois](data: A#Abst) extends AbsValue[A,Nothing]
   case class AbsBox[D<:Galois](data: D#Abst) extends AbsValue[Nothing,D]
@@ -57,8 +32,6 @@ object MemElems {
             else None
           case (AbsBox(data1),AbsBox(data2)) => boxOps.<=(data1,data2)
           case (AbsArith(data1),AbsArith(data2)) => arithOps.<=(data1,data2)
-          case (x,y) if x.isInstanceOf[AbsObject[A,D]] && y.isInstanceOf[AbsObject[A,D]] =>
-            x.asInstanceOf[AbsObject[A,D]] <= y.asInstanceOf[AbsObject[A,D]]
           case (_,_) => None
         }
       }
@@ -78,8 +51,6 @@ object MemElems {
             val joined = arithOps.\/(data1,data2)
             if(arithOps.isTop(joined)) AbsTop
             else AbsArith(joined)
-          case (x,y) if x.isInstanceOf[AbsObject[A,D]] && y.isInstanceOf[AbsObject[A,D]] =>
-            x.asInstanceOf[AbsObject[A,D]] \/ y.asInstanceOf[AbsObject[A,D]]
           case (_,_) => AbsTop
         }
       }
