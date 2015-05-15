@@ -7,6 +7,7 @@ import com.simplytyped.yoyak.framework.domain.arith.IntervalInt
 import com.simplytyped.yoyak.framework.domain.mem.MemDom
 import com.simplytyped.yoyak.framework.domain.mem.MemElems.{AbsTop, AbsArith, AbsValue}
 import com.simplytyped.yoyak.framework.semantics.AbstractTransferable
+import com.simplytyped.yoyak.framework.semantics.AbstractTransferable.Context
 import com.simplytyped.yoyak.il.CommonIL.Statement.Assign
 import com.simplytyped.yoyak.il.CommonIL.Value
 import com.simplytyped.yoyak.il.CommonIL.Value.BinOp
@@ -23,9 +24,9 @@ class IntervalAnalysis(cfg: CFG) {
 
 object IntervalAnalysis {
   implicit val absTransfer : AbstractTransferable[GaloisIdentity[MemDom[IntervalInt,SetAbstraction[Any]]]] = new AbstractTransferable[GaloisIdentity[MemDom[IntervalInt,SetAbstraction[Any]]]] {
-    override protected def transferAssign(stmt: Assign, input: MemDom[IntervalInt, SetAbstraction[Any]]): MemDom[IntervalInt, SetAbstraction[Any]] = {
+    override protected def transferAssign(stmt: Assign, input: MemDom[IntervalInt, SetAbstraction[Any]])(implicit context: Context): MemDom[IntervalInt, SetAbstraction[Any]] = {
       val value = eval(stmt.rv)
-      input.update(stmt.lv->value) // XXX: should implement complete object model (object allocation, field reference, etc.)
+      input.update(stmt.lv->value) // FIXME: should implement complete object model (object allocation, field reference, etc.)
     }
   }
   def eval(v: Value.t) : AbsValue[IntervalInt,SetAbstraction[Any]] = {

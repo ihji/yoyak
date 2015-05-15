@@ -9,7 +9,6 @@ trait ArrayJoinModel[A<:Galois,D<:Galois,This<:ArrayJoinModel[A,D,This]] extends
   implicit val arithOps : ArithmeticOps[A]
   implicit val boxedOps : LatticeWithTopOps[D]
 
-  val absValueOps = AbsValue.ops[A,D]
   protected def updateArray(kv: (ArrayRef,AbsValue[A,D])) : This = {
     val (arrayref,v) = kv
     val dummyRef = InstanceFieldRef(arrayref.base,arrayFieldName)

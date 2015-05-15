@@ -7,6 +7,7 @@ import com.simplytyped.yoyak.framework.domain.Galois.{SetAbstraction, GaloisIden
 import com.simplytyped.yoyak.framework.domain.mem.MemElems.{AbsTop, AbsBox}
 import com.simplytyped.yoyak.framework.domain._
 import com.simplytyped.yoyak.framework.domain.mem.MemDom
+import com.simplytyped.yoyak.framework.semantics.AbstractTransferable.Context
 import com.simplytyped.yoyak.framework.semantics.StdSemantics
 import com.simplytyped.yoyak.il.CommonIL.Statement.{Stmt, Invoke}
 import com.simplytyped.yoyak.il.CommonIL.Value
@@ -60,7 +61,7 @@ object StringAnalysis {
 
   implicit val absTransfer : StdSemantics[SetInt,SetAbstraction[String],MemDom[SetInt,SetAbstraction[String]]] = new StdSemantics[SetInt,SetAbstraction[String],MemDom[SetInt,SetAbstraction[String]]] {
     val arithOps = StringAnalysis.arithOps
-    override protected def evalConstant(v: Value.Constant, input: MemDom[SetInt,SetAbstraction[String]]) = {
+    override protected def evalConstant(v: Value.Constant, input: MemDom[SetInt,SetAbstraction[String]])(implicit context: Context) = {
       v match {
         case StringConstant(s) => (AbsBox[SetAbstraction[String]](Set(s)),input)
         case _ => (AbsTop,input)

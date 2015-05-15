@@ -20,7 +20,8 @@ object MemDom {
   def empty[A <: Galois : ArithmeticOps, D <: Galois : LatticeWithTopOps] = new MemDom[A,D]
 
   def ops[A <: Galois : ArithmeticOps, D <: Galois : LatticeWithTopOps] = new LatticeOps[GaloisIdentity[MemDom[A,D]]] {
-    implicit val absValueOps = AbsValue.ops[A,D]
+    implicit val absValueOps = StdObjectModel.absValueOpsWithObject[A,D]
+
     override def <=(lhs: MemDom[A,D], rhs: MemDom[A,D]): Option[Boolean] = {
       MapDom.ops[AbsAddr,GaloisIdentity[AbsValue[A,D]]].<=(lhs.rawMap,rhs.rawMap)
     }

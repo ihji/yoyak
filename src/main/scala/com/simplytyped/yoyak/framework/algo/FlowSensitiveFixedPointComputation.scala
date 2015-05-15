@@ -27,7 +27,10 @@ trait FlowSensitiveFixedPointComputation[D<:Galois] extends FlowSensitiveIterati
       val (mapOut,next) = work(map,prev,bb)
       val nextMap = mapOut.update(bb->next)
       val isStableOpt = mapDomOps.<=(nextMap,map)
-      if(isStableOpt.isEmpty) println("error: abs. transfer func. is not distributive") // XXX: abstract transfer function is not distributive. should report this error.
+      if(isStableOpt.isEmpty) {
+        // XXX: abstract transfer function is not distributive. should report this error.
+        println("error: abs. transfer func. is not distributive")
+      }
       if(!isStableOpt.get) {
         val nextWork = getNextBlocks(bb)
         worklist.add(nextWork:_*)

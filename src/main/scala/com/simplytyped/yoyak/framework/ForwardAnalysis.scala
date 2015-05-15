@@ -11,7 +11,7 @@ object ForwardAnalysis {
   class FlowInsensitiveForwardAnalysis[D<:Galois](var cfg: CFG)(implicit val ops: LatticeOps[D], val absTransfer: AbstractTransferable[D]) extends FlowInsensitiveFixedPointComputation[D] {
     def getNextBlocks(bb: BasicBlock) = cfg.getNexts(bb).toList
     def compute(input: D#Abst): D#Abst = {
-      val startNodes = cfg.getEntry.toList
+      val startNodes = cfg.getEntry.toList.flatMap{getNextBlocks}
       computeFixedPoint(input, startNodes)
     }
   }
@@ -21,7 +21,7 @@ object ForwardAnalysis {
     def getNextBlocks(bb: BasicBlock) = cfg.getNexts(bb).toList
     def memoryFetcher(map: MapDom[BasicBlock,D], b: BasicBlock) = cfg.getPrevs(b).toList.map{map.get}
     def compute : MapDom[BasicBlock,D] = {
-      val startNodes = cfg.getEntry.toList
+      val startNodes = cfg.getEntry.toList.flatMap{getNextBlocks}
       computeFixedPoint(startNodes)
     }
   }

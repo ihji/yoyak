@@ -5,6 +5,7 @@ import com.simplytyped.yoyak.framework.domain.mem.MemDomTest.SetString
 import com.simplytyped.yoyak.framework.domain.{Galois, ArithmeticOps, LatticeWithTopOps}
 import com.simplytyped.yoyak.framework.domain.mem.MemElems._
 import com.simplytyped.yoyak.il.CommonIL.ClassName
+import com.simplytyped.yoyak.il.CommonIL.Statement.Nop
 import com.simplytyped.yoyak.il.CommonIL.Value._
 import org.scalatest.{FunSuite, Matchers}
 
@@ -17,7 +18,7 @@ class MemDomTest extends FunSuite with Matchers {
   }
   test("add and retrieve things in instance field") {
     val mem = MemDom.empty[SetInt,SetString]
-    val (newRef,mem2) = mem.alloc
+    val (newRef,mem2) = mem.alloc(Nop())
     val mem3 = mem2.update(Local("x")->newRef)
     val mem4 = mem3.update(InstanceFieldRef(Local("x"),"f")->AbsArith[SetInt](Set(10)))
     mem4.get(InstanceFieldRef(Local("x"),"f")) should be (AbsArith[SetInt](Set(10)))
@@ -31,7 +32,7 @@ class MemDomTest extends FunSuite with Matchers {
   }
   test("add and retrieve things in array") {
     val mem = MemDom.empty[SetInt,SetString]
-    val (newref,mem2) = mem.alloc
+    val (newref,mem2) = mem.alloc(Nop())
     val mem3 = mem2.update(Local("x")->newref)
     val mem4 = mem3.update(ArrayRef(Local("x"),IntegerConstant(1))->AbsArith[SetInt](Set(10)))
     mem4.get(ArrayRef(Local("x"),IntegerConstant(1))) should be (AbsArith[SetInt](Set(10)))
@@ -39,7 +40,7 @@ class MemDomTest extends FunSuite with Matchers {
   }
   test("add and retrieve things in array with join") {
     val mem = MemDom.empty[SetInt,SetString]
-    val (newref,mem2) = mem.alloc
+    val (newref,mem2) = mem.alloc(Nop())
     val mem3 = mem2.update(Local("x")->newref)
     val mem4 = mem3.update(ArrayRef(Local("x"),IntegerConstant(1))->AbsArith[SetInt](Set(10)))
     val mem5 = mem4.update(ArrayRef(Local("x"),IntegerConstant(2))->AbsArith[SetInt](Set(20)))

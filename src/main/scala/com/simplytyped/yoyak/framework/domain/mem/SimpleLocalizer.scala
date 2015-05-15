@@ -1,5 +1,6 @@
 package com.simplytyped.yoyak.framework.domain.mem
 
+import com.simplytyped.yoyak.framework.domain.mem.StdObjectModel.AbsObject
 import com.simplytyped.yoyak.framework.domain.{Galois, LatticeWithTopOps, ArithmeticOps}
 import com.simplytyped.yoyak.framework.domain.mem.MemElems.{AbsValue, AbsRef, AbsAddr}
 import com.simplytyped.yoyak.il.CommonIL.Value.Local
@@ -33,7 +34,7 @@ class SimpleLocalizer[A <: Galois : ArithmeticOps, D <: Galois : LatticeWithTopO
   }
   private def getAddrsFromValue(v: AbsValue[A,D]) : Set[AbsAddr] = {
     v match {
-      case obj : MemDom[A,D]#AbsObject =>
+      case obj : AbsObject[A,D] =>
         obj.rawFieldMap.foldLeft(Set.empty[AbsAddr]) {
           case (s,(_,fieldValue)) => s ++ getAddrsFromValue(fieldValue)
         }

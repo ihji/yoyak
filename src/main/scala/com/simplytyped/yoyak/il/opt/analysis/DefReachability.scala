@@ -4,6 +4,7 @@ import com.simplytyped.yoyak.framework.ForwardAnalysis.FlowSensitiveForwardAnaly
 import com.simplytyped.yoyak.framework.domain.Galois.GaloisIdentity
 import com.simplytyped.yoyak.framework.domain.{Galois, LatticeOps, MapDom}
 import com.simplytyped.yoyak.framework.semantics.AbstractTransferable
+import com.simplytyped.yoyak.framework.semantics.AbstractTransferable.Context
 import com.simplytyped.yoyak.il.CommonIL.Statement._
 import com.simplytyped.yoyak.il.CommonIL.Value.Local
 import com.simplytyped.yoyak.il.cfg.{BasicBlock, CFG}
@@ -36,14 +37,15 @@ object DefReachability {
   implicit val ops : LatticeOps[GaloisIdentity[MapDom[Local,SetCoreStmt]]] = MapDom.ops[Local,SetCoreStmt]
   implicit val absTransfer : AbstractTransferable[GaloisIdentity[MapDom[Local,SetCoreStmt]]] = new AbstractTransferable[GaloisIdentity[MapDom[Local, SetCoreStmt]]] {
 
-    override protected def transferInvoke(stmt: Invoke, input: MapDom[Local, SetCoreStmt]): MapDom[Local, SetCoreStmt] = {
+    override protected def transferInvoke(stmt: Invoke, input: MapDom[Local, SetCoreStmt])(implicit context: Context): MapDom[Local, SetCoreStmt] = {
       if(stmt.ret.nonEmpty) input.update(stmt.ret.get -> Set(stmt))
       else input
     }
 
-    override protected def transferIdentity(stmt: Identity, input: MapDom[Local, SetCoreStmt]): MapDom[Local, SetCoreStmt] = input.update(stmt.lv -> Set(stmt))
+    override protected def transferIdentity(stmt: Identity, input: MapDom[Local, SetCoreStmt])(implicit context: Context): MapDom[Local, SetCoreStmt] =
+      input.update(stmt.lv -> Set(stmt))
 
-    override protected def transferAssign(stmt: Assign, input: MapDom[Local, SetCoreStmt]): MapDom[Local, SetCoreStmt] = {
+    override protected def transferAssign(stmt: Assign, input: MapDom[Local, SetCoreStmt])(implicit context: Context): MapDom[Local, SetCoreStmt] = {
       if(stmt.lv.isInstanceOf[Local]) input.update(stmt.lv.asInstanceOf[Local] -> Set(stmt))
       else input
     }

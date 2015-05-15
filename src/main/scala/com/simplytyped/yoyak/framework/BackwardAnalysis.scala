@@ -8,10 +8,11 @@ import com.simplytyped.yoyak.il.cfg.{BasicBlock, CFG}
 
 object BackwardAnalysis {
 
+  // FIXME: we should also take a reverse order while analyzing statements in a single block
   class FlowInsensitiveBackwardAnalysis[D<:Galois](var cfg: CFG)(implicit val ops: LatticeOps[D], val absTransfer: AbstractTransferable[D]) extends FlowInsensitiveFixedPointComputation[D] {
     def getNextBlocks(bb: BasicBlock) = cfg.getPrevs(bb).toList
     def compute(input: D#Abst): D#Abst = {
-      val startNodes = cfg.getExit.toList
+      val startNodes = cfg.getExit.toList.flatMap{getNextBlocks}
       computeFixedPoint(input, startNodes)
     }
   }
@@ -21,7 +22,7 @@ object BackwardAnalysis {
     def getNextBlocks(bb: BasicBlock) = cfg.getPrevs(bb).toList
     def memoryFetcher(map: MapDom[BasicBlock,D], b: BasicBlock) = cfg.getNexts(b).toList.map{map.get}
     def compute : MapDom[BasicBlock,D] = {
-      val startNodes = cfg.getExit.toList
+      val startNodes = cfg.getExit.toList.flatMap{getNextBlocks}
       computeFixedPoint(startNodes)
     }
   }

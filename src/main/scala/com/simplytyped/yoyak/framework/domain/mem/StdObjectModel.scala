@@ -1,9 +1,10 @@
 package com.simplytyped.yoyak.framework.domain.mem
 
 import com.simplytyped.yoyak.framework.domain.Galois.GaloisIdentity
-import com.simplytyped.yoyak.framework.domain.{Galois, LatticeWithTopOps, ArithmeticOps, MapDom}
+import com.simplytyped.yoyak.framework.domain._
 import com.simplytyped.yoyak.framework.domain.mem.MemElems._
 import com.simplytyped.yoyak.il.CommonIL.ClassName
+import com.simplytyped.yoyak.il.CommonIL.Statement.Stmt
 import com.simplytyped.yoyak.il.CommonIL.Value._
 import StdObjectModel._
 
@@ -11,11 +12,13 @@ trait StdObjectModel[A<:Galois,D<:Galois,This<:StdObjectModel[A,D,This]] extends
   implicit val arithOps : ArithmeticOps[A]
   implicit val boxedOps : LatticeWithTopOps[D]
 
-  protected[mem] var rawMap = MapDom.empty[AbsAddr,GaloisIdentity[AbsValue[A,D]]](AbsValue.ops[A,D])
+  implicit val absValueOps = absValueOpsWithObject[A,D]
 
-  def alloc : (AbsRef,This) = {
-    val newObj = new AbsObject
-    val newAddr = getNewAddr()
+  protected[mem] var rawMap = MapDom.empty[AbsAddr,GaloisIdentity[AbsValue[A,D]]]
+
+  def alloc(from: Stmt) : (AbsRef,This) = {
+    val newObj = new AbsObject[A,D]
+    val newAddr = getNewAddr(from)
     val newRawMap = rawMap.update(newAddr->newObj)
     (newAddr.toAbsRef,builder(newRawMap))
   }
@@ -36,7 +39,7 @@ trait StdObjectModel[A<:Galois,D<:Galois,This<:StdObjectModel[A,D,This]] extends
               (m,i) =>
                 val obj = map.get(AbsAddr(i))
                 val newObj = obj match {
-                  case obj: StdObjectModel[A,D,This]#AbsObject =>
+                  case obj: AbsObject[A,D] =>
                     if(ids.size == 1) obj.updateField(field->v)
                     else obj.weakUpdateField(field->v)
                   case _ => obj // error case: should be reported
@@ -49,10 +52,10 @@ trait StdObjectModel[A<:Galois,D<:Galois,This<:StdObjectModel[A,D,This]] extends
         val staticAddr = getStaticAddr(clazz)
         val staticObj = map.get(staticAddr)
         val newStaticObj = staticObj match {
-          case obj: StdObjectModel[A,D,This]#AbsObject =>
+          case obj: AbsObject[A,D] =>
             obj.weakUpdateField(field->v)
           case _ =>
-            val obj = new AbsObject
+            val obj = new AbsObject[A,D]
             obj.updateField(field->v)
         }
         map.update(staticAddr->newStaticObj)
@@ -77,10 +80,10 @@ trait StdObjectModel[A<:Galois,D<:Galois,This<:StdObjectModel[A,D,This]] extends
               (v,id) =>
                 val obj = rawMap.get(AbsAddr(id))
                 val fieldValue = obj match {
-                  case obj: StdObjectModel[A,D,This]#AbsObject => obj.getField(field)
+                  case obj: AbsObject[A,D] => obj.getField(field)
                   case _ => AbsBottom
                 }
-                AbsValue.ops[A,D].\/(v,fieldValue)
+                absValueOps.\/(v,fieldValue)
             }
           case _ => AbsBottom
         }
@@ -88,7 +91,7 @@ trait StdObjectModel[A<:Galois,D<:Galois,This<:StdObjectModel[A,D,This]] extends
         val staticAddr = getStaticAddr(clazz)
         val obj = rawMap.get(staticAddr)
         obj match {
-          case obj: StdObjectModel[A,D,This]#AbsObject => obj.getField(field)
+          case obj: AbsObject[A,D] => obj.getField(field)
           case _ => AbsBottom
         }
       case Param(i) =>
@@ -99,24 +102,6 @@ trait StdObjectModel[A<:Galois,D<:Galois,This<:StdObjectModel[A,D,This]] extends
   def isDynamicAddr(addr: AbsAddr) : Boolean = addr.id.startsWith(StdObjectModel.dynamicPrefix)
 
   protected def builder(rawMap: MapDom[AbsAddr,GaloisIdentity[AbsValue[A,D]]]) : This
-
-  class AbsObject extends AbsValue[A,D] {
-    implicit val absValueOps = AbsValue.ops[A,D]
-    protected[mem] var rawFieldMap = MapDom.empty[String,GaloisIdentity[AbsValue[A,D]]]
-    def updateField(kv: (String,AbsValue[A,D])) = {
-      val newFieldMap = rawFieldMap.update(kv)
-      val newObject = new AbsObject
-      newObject.rawFieldMap = newFieldMap
-      newObject
-    }
-    def weakUpdateField(kv: (String,AbsValue[A,D])) = {
-      val newFieldMap = rawFieldMap.weakUpdate(kv)
-      val newObject = new AbsObject
-      newObject.rawFieldMap = newFieldMap
-      newObject
-    }
-    def getField(k: String) : AbsValue[A,D] = rawFieldMap.get(k)
-  }
 }
 
 object StdObjectModel {
@@ -126,6 +111,66 @@ object StdObjectModel {
   def getStaticAddr(className: ClassName) : AbsAddr = AbsAddr(s"$staticPrefix${ClassName.toString(className)}")
 
   var addrIdx = 0
-  def getNewAddr() : AbsAddr = {addrIdx += 1; AbsAddr(s"$dynamicPrefix$addrIdx")}
+  var stmtToDyAddrNum = Map.empty[Stmt,Int]
+  def getNewAddr(from: Stmt) : AbsAddr = {
+    val existingIdxOpt = stmtToDyAddrNum.get(from)
+    val idx =
+      if(existingIdxOpt.isEmpty) {
+        addrIdx += 1
+        stmtToDyAddrNum += from -> addrIdx
+        addrIdx
+      } else existingIdxOpt.get
+    AbsAddr(s"$dynamicPrefix$idx")
+  }
   def getParamAddr(i: Int) : AbsAddr = AbsAddr(s"${dynamicPrefix}p$i")
+
+  class AbsObject[A<:Galois:ArithmeticOps,D<:Galois:LatticeWithTopOps] extends AbsValue[A,D] {
+    implicit val absValueOps = absValueOpsWithObject[A,D]
+
+    protected[mem] var rawFieldMap = MapDom.empty[String,GaloisIdentity[AbsValue[A,D]]]
+
+    def \/(that: AbsObject[A,D]) : AbsObject[A,D] = {
+      val newFieldMap = MapDom.ops[String,GaloisIdentity[AbsValue[A,D]]].\/(rawFieldMap,that.rawFieldMap)
+      val newObject = new AbsObject[A,D]
+      newObject.rawFieldMap = newFieldMap
+      newObject
+    }
+
+    def <=(that: AbsObject[A,D]) : Option[Boolean] = {
+      MapDom.ops[String,GaloisIdentity[AbsValue[A,D]]].<=(rawFieldMap,that.rawFieldMap)
+    }
+
+    def updateField(kv: (String,AbsValue[A,D])) = {
+      val newFieldMap = rawFieldMap.update(kv)
+      val newObject = new AbsObject[A,D]
+      newObject.rawFieldMap = newFieldMap
+      newObject
+    }
+    def weakUpdateField(kv: (String,AbsValue[A,D])) = {
+      val newFieldMap = rawFieldMap.weakUpdate(kv)
+      val newObject = new AbsObject[A,D]
+      newObject.rawFieldMap = newFieldMap
+      newObject
+    }
+    def getField(k: String) : AbsValue[A,D] = rawFieldMap.get(k)
+  }
+
+  def absValueOpsWithObject[A<:Galois:ArithmeticOps,D<:Galois:LatticeWithTopOps] = new LatticeOps[GaloisIdentity[AbsValue[A,D]]] {
+    val absValueOps = AbsValue.ops[A,D]
+    override def \/(lhs: AbsValue[A,D], rhs: AbsValue[A,D]): AbsValue[A,D] = {
+      (lhs,rhs) match {
+        case (x,y) if x.isInstanceOf[AbsObject[A,D]] && y.isInstanceOf[AbsObject[A,D]] =>
+          x.asInstanceOf[AbsObject[A,D]] \/ y.asInstanceOf[AbsObject[A,D]]
+        case (_,_) => absValueOps.\/(lhs,rhs)
+      }
+    }
+    override def <=(lhs: AbsValue[A,D], rhs: AbsValue[A,D]): Option[Boolean] = {
+      (lhs,rhs) match {
+        case (x,y) if x.isInstanceOf[AbsObject[A,D]] && y.isInstanceOf[AbsObject[A,D]] =>
+          x.asInstanceOf[AbsObject[A,D]] <= y.asInstanceOf[AbsObject[A,D]]
+        case (_,_) => absValueOps.<=(lhs,rhs)
+      }
+    }
+    override def bottom: AbsValue[A,D] = absValueOps.bottom
+  }
 }
