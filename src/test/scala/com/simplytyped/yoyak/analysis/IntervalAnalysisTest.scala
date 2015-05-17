@@ -10,11 +10,17 @@ class IntervalAnalysisTest extends FunSuite with Matchers {
   test("simple test") {
     val parser = new CommonILParser
     val result = parser.parseAll(parser.clazz, IntervalAnalysisTest.inputPgm)
+    if(!result.successful) println(result)
     val clazz = new CommonILTransform().transform(result.get)
     val pgm = Program(Map(clazz.name->clazz))
-    val cfg = new CommonILToCFG().transform(pgm.findByMethodName("bar").head)
+    val mtd = pgm.findByMethodName("bar").head
+    val cfg = new CommonILToCFG().transform(mtd)
     //println(new PrettyPrinter().toDot(cfg))
-    println(new PrettyPrinter().toString(pgm.findByMethodName("bar").head))
+    println(new PrettyPrinter().toString(mtd))
+
+    val result2 = new IntervalAnalysis(cfg).run()
+
+    println(result2)
 
     pgm.findByMethodName("bar").nonEmpty should be (true)
   }
@@ -31,10 +37,16 @@ object IntervalAnalysisTest {
       |     return b;
       |   }
       |   bar(a: string) {
-      |     x = a;
-      |     if(x > 0) {
+      |     x = 0;
+      |     y = 1;
+      |     while (x < 100) {
+      |       x = x + 1;
+      |     }
+      |     if(y > 0) {
+      |       y = 10;
       |       return 1;
       |     } else {
+      |       y = -10;
       |       return 0;
       |     }
       |   }

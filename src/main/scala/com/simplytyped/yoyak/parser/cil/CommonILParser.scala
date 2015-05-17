@@ -17,7 +17,7 @@ class CommonILParser extends JavaTokenParsers {
 
   def block : Parser[Block] = positioned("{"~>rep(cilstmt)<~"}" ^^ Block)
 
-  def cilstmt : Parser[CILStmt] = positioned(ifstmt | assignstmt | invokestmt | returnstmt)
+  def cilstmt : Parser[CILStmt] = positioned(ifstmt | whilestmt | assignstmt | invokestmt | returnstmt)
   def ifstmt : Parser[If] = positioned(
     "if"~"("~value~")"~block~"else"~block ^^ { case _~_~v~_~b1~_~b2 => If(v,b1,b2) }
   )

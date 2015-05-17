@@ -133,8 +133,50 @@ object IntervalInt {
 
     override def bottom: Interval = IntervBottom
 
-    override def \/(lhs: Interval, rhs: Interval): Interval = ???
+    override def \/(lhs: Interval, rhs: Interval): Interval =
+      (lhs,rhs) match {
+        case (IntervTop,_) => IntervTop
+        case (_,IntervTop) => IntervTop
+        case (IntervBottom,x) => x
+        case (x,IntervBottom) => x
+        case (Interv(lb1,ub1),Interv(lb2,ub2)) =>
+          val newLb = (lb1,lb2) match {
+            case (IInfMinus,_) => IInfMinus
+            case (_,IInfMinus) => IInfMinus
+            case (IInt(v1),IInt(v2)) => IInt(Math.min(v1,v2))
+          }
+          val newUb = (ub1,ub2) match {
+            case (IInf,_) => IInf
+            case (_,IInf) => IInf
+            case (IInt(v1),IInt(v2)) => IInt(Math.max(v1,v2))
+          }
+          Interv.in(newLb,newUb)
+      }
 
-    override def <=(lhs: Interval, rhs: Interval): Option[Boolean] = ???
+    override def <=(lhs: Interval, rhs: Interval): Option[Boolean] =
+      (lhs,rhs) match {
+        case (_,IntervTop) => Some(true)
+        case (IntervTop,_) => Some(false)
+        case (IntervBottom,_) => Some(true)
+        case (_,IntervBottom) => Some(false)
+        case (Interv(lb1,ub1),Interv(lb2,ub2)) =>
+          val lbOrder = (lb1,lb2) match {
+            case (IInfMinus,IInfMinus) => 0
+            case (IInfMinus,_) => -1
+            case (_,IInfMinus) => 1
+            case (IInt(v1),IInt(v2)) => v1 compare v2
+          }
+          val ubOrder = (ub1,ub2) match {
+            case (IInf,IInf) => 0
+            case (IInf,_) => 1
+            case (_,IInf) => -1
+            case (IInt(v1),IInt(v2)) => v1 compare v2
+          }
+          (lbOrder,ubOrder) match {
+            case (x,y) if x >= 0 && y <= 0 => Some(true)
+            case (x,y) if x <= 0 && y >= 0 && (x != 0 || y != 0) => Some(false)
+            case _ => None
+          }
+      }
   }
 }
