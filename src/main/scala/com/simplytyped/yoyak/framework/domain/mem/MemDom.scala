@@ -3,6 +3,7 @@ package com.simplytyped.yoyak.framework.domain.mem
 import com.simplytyped.yoyak.framework.domain.Galois.GaloisIdentity
 import com.simplytyped.yoyak.framework.domain._
 import com.simplytyped.yoyak.framework.domain.mem.MemElems._
+import com.simplytyped.yoyak.framework.semantics.Widening
 
 class MemDom[A <: Galois : ArithmeticOps, D <: Galois : LatticeWithTopOps] extends StdObjectModel[A,D,MemDom[A,D]] {
 
@@ -18,6 +19,18 @@ class MemDom[A <: Galois : ArithmeticOps, D <: Galois : LatticeWithTopOps] exten
 
 object MemDom {
   def empty[A <: Galois : ArithmeticOps, D <: Galois : LatticeWithTopOps] = new MemDom[A,D]
+
+  def widening[A<:Galois:Widening:ArithmeticOps,D<:Galois:Widening:LatticeWithTopOps] = new Widening[GaloisIdentity[MemDom[A,D]]] {
+    implicit val wideningAbsValue = StdObjectModel.wideningWithObject[A,D]
+    implicit val absValueOps = StdObjectModel.absValueOpsWithObject[A,D]
+
+    override def <>(x: MemDom[A, D], y: MemDom[A, D]): MemDom[A, D] = {
+      val newRawMap = MapDom.widening[AbsAddr,GaloisIdentity[AbsValue[A,D]]].<>(x.rawMap,y.rawMap)
+      val newMemDom = new MemDom[A,D]
+      newMemDom.rawMap = newRawMap
+      newMemDom
+    }
+  }
 
   def ops[A <: Galois : ArithmeticOps, D <: Galois : LatticeWithTopOps] = new LatticeOps[GaloisIdentity[MemDom[A,D]]] {
     implicit val absValueOps = StdObjectModel.absValueOpsWithObject[A,D]

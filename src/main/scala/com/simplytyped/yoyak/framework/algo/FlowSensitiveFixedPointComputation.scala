@@ -1,12 +1,11 @@
 package com.simplytyped.yoyak.framework.algo
 
-import com.simplytyped.yoyak.framework.domain.Galois.GaloisIdentity
 import com.simplytyped.yoyak.framework.domain.{Galois, MapDom, LatticeOps}
+import com.simplytyped.yoyak.framework.semantics.Widening
 import com.simplytyped.yoyak.il.cfg.BasicBlock
 
-trait FlowSensitiveFixedPointComputation[D<:Galois] extends FlowSensitiveIteration[D] with CfgNavigator[D] {
+trait FlowSensitiveFixedPointComputation[D<:Galois] extends FlowSensitiveIteration[D] with CfgNavigator[D] with DoWidening[D] {
   implicit val ops : LatticeOps[D]
-  implicit val mapDomOps : LatticeOps[GaloisIdentity[MapDom[BasicBlock,D]]]
 
   val worklist = Worklist.empty[BasicBlock]
 
@@ -17,7 +16,7 @@ trait FlowSensitiveFixedPointComputation[D<:Galois] extends FlowSensitiveIterati
     input
   }
 
-  def computeFixedPoint(startNodes: List[BasicBlock]) : MapDom[BasicBlock,D] = {
+  def computeFixedPoint(startNodes: List[BasicBlock])(implicit widening: Option[Widening[D]] = None) : MapDom[BasicBlock,D] = {
     worklist.add(startNodes:_*)
     var map = MapDom.empty[BasicBlock,D]
     while(worklist.size() > 0) {
@@ -25,16 +24,19 @@ trait FlowSensitiveFixedPointComputation[D<:Galois] extends FlowSensitiveIterati
       val prevInputs = memoryFetcher(map,bb)
       val prev = getInput(map,prevInputs)
       val (mapOut,next) = work(map,prev,bb)
-      val nextMap = mapOut.update(bb->next)
-      val isStableOpt = mapDomOps.<=(nextMap,map)
+      val orig = map.get(bb)
+      val isStableOpt = ops.<=(next,orig)
       if(isStableOpt.isEmpty) {
         // XXX: abstract transfer function is not distributive. should report this error.
         println("error: abs. transfer func. is not distributive")
       }
       if(!isStableOpt.get) {
+        val widened = if(widening.nonEmpty) {
+          doWidening(widening.get)(orig,next,bb)
+        } else next
+        map = mapOut.update(bb->widened)
         val nextWork = getNextBlocks(bb)
         worklist.add(nextWork:_*)
-        map = nextMap
       }
     }
     map

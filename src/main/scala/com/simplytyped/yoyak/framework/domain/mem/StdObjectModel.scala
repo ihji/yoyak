@@ -3,6 +3,7 @@ package com.simplytyped.yoyak.framework.domain.mem
 import com.simplytyped.yoyak.framework.domain.Galois.GaloisIdentity
 import com.simplytyped.yoyak.framework.domain._
 import com.simplytyped.yoyak.framework.domain.mem.MemElems._
+import com.simplytyped.yoyak.framework.semantics.Widening
 import com.simplytyped.yoyak.il.CommonIL.ClassName
 import com.simplytyped.yoyak.il.CommonIL.Statement.Stmt
 import com.simplytyped.yoyak.il.CommonIL.Value._
@@ -140,6 +141,13 @@ object StdObjectModel {
       MapDom.ops[String,GaloisIdentity[AbsValue[A,D]]].<=(rawFieldMap,that.rawFieldMap)
     }
 
+    def widening(that: AbsObject[A,D])(implicit wideningAbsValue: Widening[GaloisIdentity[AbsValue[A,D]]]) : AbsObject[A,D] = {
+      val newFieldMap = MapDom.widening[String,GaloisIdentity[AbsValue[A,D]]].<>(rawFieldMap,that.rawFieldMap)
+      val newObject = new AbsObject[A,D]
+      newObject.rawFieldMap = newFieldMap
+      newObject
+    }
+
     def updateField(kv: (String,AbsValue[A,D])) = {
       val newFieldMap = rawFieldMap.update(kv)
       val newObject = new AbsObject[A,D]
@@ -172,5 +180,16 @@ object StdObjectModel {
       }
     }
     override def bottom: AbsValue[A,D] = absValueOps.bottom
+  }
+
+  def wideningWithObject[A<:Galois:Widening,D<:Galois:Widening] = new Widening[GaloisIdentity[AbsValue[A,D]]] {
+    implicit val wideningAbsValue = AbsValue.widening[A,D]
+    override def <>(x: AbsValue[A, D], y: AbsValue[A, D]): AbsValue[A, D] = {
+      (x,y) match {
+        case (_,_) if x.isInstanceOf[AbsObject[A,D]] && y.isInstanceOf[AbsObject[A,D]] =>
+          x.asInstanceOf[AbsObject[A,D]] widening y.asInstanceOf[AbsObject[A,D]]
+        case (_,_) => wideningAbsValue.<>(x,y)
+      }
+    }
   }
 }

@@ -1,6 +1,7 @@
 package com.simplytyped.yoyak.framework.domain
 
 import com.simplytyped.yoyak.framework.domain.Galois.GaloisIdentity
+import com.simplytyped.yoyak.framework.semantics.Widening
 
 class MapDom[K,V <: Galois : LatticeOps] {
   val valueOps = implicitly[LatticeOps[V]]
@@ -36,6 +37,20 @@ class MapDom[K,V <: Galois : LatticeOps] {
 
 object MapDom {
   def empty[K,V <: Galois : LatticeOps] = new MapDom[K,V]
+
+  def widening[K,V <: Galois : LatticeOps : Widening] = new Widening[GaloisIdentity[MapDom[K,V]]] {
+    val widening = implicitly[Widening[V]]
+    override def <>(x: MapDom[K, V], y: MapDom[K, V]) : MapDom[K, V] = {
+      val newDom = new MapDom[K,V]
+      newDom.rawMap = y.rawMap.map{
+        case (k,v) =>
+          val oldV = x.get(k)
+          val newV = widening.<>(oldV,v)
+          (k,newV)
+      }
+      newDom
+    }
+  }
 
   def ops[K,V <: Galois : LatticeOps] = new LatticeOps[GaloisIdentity[MapDom[K,V]]] {
     val valueOps = implicitly[LatticeOps[V]]

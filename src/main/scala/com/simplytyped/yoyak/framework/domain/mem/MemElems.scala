@@ -2,6 +2,8 @@ package com.simplytyped.yoyak.framework.domain.mem
 
 import com.simplytyped.yoyak.framework.domain.Galois.GaloisIdentity
 import com.simplytyped.yoyak.framework.domain._
+import com.simplytyped.yoyak.framework.semantics.Widening
+import com.simplytyped.yoyak.il.cfg.BasicBlock
 
 object MemElems {
   case class AbsAddr(id: String) {
@@ -17,6 +19,17 @@ object MemElems {
   case object AbsTop extends AbsValue
 
   object AbsValue {
+    def widening[A<:Galois:Widening, D<:Galois:Widening] = new Widening[GaloisIdentity[AbsValue[A,D]]] {
+      val wideningA = implicitly[Widening[A]]
+      val wideningD = implicitly[Widening[D]]
+      override def <>(x: AbsValue[A, D], y: AbsValue[A, D]): AbsValue[A, D] = {
+        (x,y) match {
+          case (AbsArith(a1),AbsArith(a2)) => AbsArith(wideningA.<>(a1,a2))
+          case (AbsBox(d1),AbsBox(d2)) => AbsBox(wideningD.<>(d1,d2))
+          case (_,_) => y
+        }
+      }
+    }
     def ops[A <: Galois : ArithmeticOps, D <: Galois : LatticeWithTopOps] = new LatticeOps[GaloisIdentity[AbsValue[A,D]]] {
       val boxOps   = implicitly[LatticeWithTopOps[D]]
       val arithOps = implicitly[ArithmeticOps[A]]

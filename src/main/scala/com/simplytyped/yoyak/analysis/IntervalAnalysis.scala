@@ -5,12 +5,12 @@ import com.simplytyped.yoyak.framework.domain.Galois.{SetAbstraction, GaloisIden
 import com.simplytyped.yoyak.framework.domain.{ArithmeticOps, LatticeOps}
 import com.simplytyped.yoyak.framework.domain.arith.IntervalInt
 import com.simplytyped.yoyak.framework.domain.mem.MemDom
-import com.simplytyped.yoyak.framework.semantics.{StdSemantics, AbstractTransferable}
+import com.simplytyped.yoyak.framework.semantics.{Widening, StdSemantics, AbstractTransferable}
 import com.simplytyped.yoyak.il.cfg.CFG
 
 class IntervalAnalysis(cfg: CFG) {
   def run() = {
-    import IntervalAnalysis.{memDomOps,absTransfer}
+    import IntervalAnalysis.{memDomOps,absTransfer,widening}
     val analysis = new FlowSensitiveForwardAnalysis[GaloisIdentity[MemDom[IntervalInt,SetAbstraction[Any]]]](cfg)
     val output = analysis.compute
     output
@@ -23,4 +23,8 @@ object IntervalAnalysis {
   }
 
   implicit val memDomOps : LatticeOps[GaloisIdentity[MemDom[IntervalInt,SetAbstraction[Any]]]] = MemDom.ops[IntervalInt,SetAbstraction[Any]]
+  implicit val widening : Option[Widening[GaloisIdentity[MemDom[IntervalInt,SetAbstraction[Any]]]]] = {
+    implicit val NoWideningForSetAbstraction = Widening.NoWidening[SetAbstraction[Any]]
+    Some(MemDom.widening[IntervalInt,SetAbstraction[Any]])
+  }
 }

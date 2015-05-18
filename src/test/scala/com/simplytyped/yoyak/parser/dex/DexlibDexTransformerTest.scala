@@ -12,7 +12,7 @@ class DexlibDexTransformerTest extends FunSuite with Matchers {
     import com.simplytyped.yoyak.il.PrettyPrinter
     val mtd = pgm.findByMethodName("argTest").head
     val cfg = new CommonILToCFG().transform(mtd)
-    //println(new PrettyPrinter().toDot(cfg))
+    //println(new PrettyPrinter().toString(mtd))
 
     val result = new StringAnalysis(cfg).run()
 

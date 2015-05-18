@@ -1,6 +1,7 @@
 package com.simplytyped.yoyak.il.cfg
 
 import com.simplytyped.yoyak.graph.ImmutableGraphLike
+import com.simplytyped.yoyak.graph.algo.GraphTraverseImpl
 
 case class CFG(nodes: Set[BasicBlock], edges: Set[BasicEdge], nexts: Map[BasicBlock,Set[BasicEdge]], prevs: Map[BasicBlock,Set[BasicEdge]]) extends ImmutableGraphLike[BasicBlock,BasicEdge,CFG] {
   def newEdge(from: BasicBlock, to: BasicBlock): BasicEdge = BasicEdge(from,to)
@@ -16,4 +17,5 @@ case class CFG(nodes: Set[BasicBlock], edges: Set[BasicEdge], nexts: Map[BasicBl
 
 object CFG {
   val empty = CFG(Set.empty,Set.empty,Map.empty,Map.empty)
+  val traverse = new GraphTraverseImpl[BasicBlock,BasicEdge,CFG] {}
 }
