@@ -2,6 +2,8 @@
 
 Generic program analysis engine based on the theory of abstract interpretation.
 This project is at the *very* early stage (i.e. not usable for any purpose except its own development).
+
+For those of you who want to know more about yoyak, this is the [presentation slide](http://www.slideshare.net/ihji/yoyak-scaladays-2015) at ScalaDays 2015.
  
 ## License
 
