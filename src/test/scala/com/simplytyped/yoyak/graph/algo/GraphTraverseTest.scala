@@ -42,7 +42,7 @@ class GraphTraverseTest  extends FunSuite with Matchers {
       """.stripMargin
     val traverser = new GraphTraverseImpl[IntNode,IntEdge,IntegerImmutableGraph] {}
     val loopHeads = traverser.findLoopheads(graph)
-    loopHeads.map{_.data} should be (List(8))
+    loopHeads.map{_.data}.toSet should be (Set(8))
   }
   test("find loopheads: Nested") {
     val graph: IntegerImmutableGraph =
@@ -63,7 +63,7 @@ class GraphTraverseTest  extends FunSuite with Matchers {
       """.stripMargin
     val traverser = new GraphTraverseImpl[IntNode,IntEdge,IntegerImmutableGraph] {}
     val loopHeads = traverser.findLoopheads(graph)
-    loopHeads.map{_.data} should be (List(4,3,2))
+    loopHeads.map{_.data}.toSet should be (Set(4,3,2))
   }
   test("find loopheads: Break") {
     val graph: IntegerImmutableGraph =
@@ -84,7 +84,7 @@ class GraphTraverseTest  extends FunSuite with Matchers {
       """.stripMargin
     val traverser = new GraphTraverseImpl[IntNode,IntEdge,IntegerImmutableGraph] {}
     val loopHeads = traverser.findLoopheads(graph)
-    loopHeads.map{_.data} should be (List(3,2))
+    loopHeads.map{_.data}.toSet should be (Set(3,2))
   }
   test("find loopheads: Loop in branch") {
     val graph: IntegerImmutableGraph =
@@ -105,6 +105,6 @@ class GraphTraverseTest  extends FunSuite with Matchers {
       """.stripMargin
     val traverser = new GraphTraverseImpl[IntNode,IntEdge,IntegerImmutableGraph] {}
     val loopHeads = traverser.findLoopheads(graph)
-    loopHeads.map{_.data} should be (List(8))
+    loopHeads.map{_.data}.toSet should be (Set(8))
   }
 }
