@@ -14,19 +14,19 @@ trait GraphTraverseImpl[Node <: NodeLike[Node], Edge <: EdgeLike[Node], Graph <:
     if(roots.isEmpty) Stream.empty[Node]
     else depthFirstTraverse_aux(roots.head,Set(),roots.tail)
   }
-  def findLoopheads(g: Graph) : List[Node] = {
-    def findLoopheads_aux(visiting: Node, visited: Set[Node]) : List[Node] = {
+  def findLoopheads(g: Graph) : Vector[Node] = {
+    def findLoopheads_aux(visiting: Node, visited: Set[Node]) : Vector[Node] = {
       val nexts = g.getNexts(visiting).toList
-      nexts.foldLeft(List.empty[Node]) {
+      nexts.foldLeft(Vector.empty[Node]) {
         case (l,n) =>
-          if(visited(n)) n::l
-          else findLoopheads_aux(n, visited + visiting) ++ l
+          if(visited(n)) l :+ n
+          else l ++ findLoopheads_aux(n, visited + visiting)
       }
     }
     val roots = (g.nexts.keySet -- g.prevs.keySet).toList
-    if(roots.isEmpty) List.empty[Node]
-    else roots.foldLeft(List.empty[Node]) {
-      case (l,n) => findLoopheads_aux(n,Set())
+    if(roots.isEmpty) Vector.empty[Node]
+    else roots.foldLeft(Vector.empty[Node]) {
+      case (l,n) => l ++ findLoopheads_aux(n,Set())
     }.distinct
   }
 }
