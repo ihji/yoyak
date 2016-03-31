@@ -137,8 +137,8 @@ object StdObjectModel {
       newObject
     }
 
-    def <=(that: AbsObject[A,D]) : Option[Boolean] = {
-      MapDom.ops[String,GaloisIdentity[AbsValue[A,D]]].<=(rawFieldMap,that.rawFieldMap)
+    def partialCompare(that: AbsObject[A,D]) : Double = {
+      MapDom.ops[String,GaloisIdentity[AbsValue[A,D]]].partialCompare(rawFieldMap,that.rawFieldMap)
     }
 
     def widening(that: AbsObject[A,D])(implicit wideningAbsValue: Widening[GaloisIdentity[AbsValue[A,D]]]) : AbsObject[A,D] = {
@@ -172,11 +172,11 @@ object StdObjectModel {
         case (_,_) => absValueOps.\/(lhs,rhs)
       }
     }
-    override def <=(lhs: AbsValue[A,D], rhs: AbsValue[A,D]): Option[Boolean] = {
+    override def partialCompare(lhs: AbsValue[A,D], rhs: AbsValue[A,D]): Double = {
       (lhs,rhs) match {
         case (x,y) if x.isInstanceOf[AbsObject[A,D]] && y.isInstanceOf[AbsObject[A,D]] =>
-          x.asInstanceOf[AbsObject[A,D]] <= y.asInstanceOf[AbsObject[A,D]]
-        case (_,_) => absValueOps.<=(lhs,rhs)
+          x.asInstanceOf[AbsObject[A,D]] partialCompare y.asInstanceOf[AbsObject[A,D]]
+        case (_,_) => absValueOps.partialCompare(lhs,rhs)
       }
     }
     override def bottom: AbsValue[A,D] = absValueOps.bottom

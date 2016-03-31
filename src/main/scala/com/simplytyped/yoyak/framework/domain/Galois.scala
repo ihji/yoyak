@@ -22,10 +22,11 @@ object Galois {
 
       override def \/(lhs: Set[A], rhs: Set[A]): Set[A] = lhs ++ rhs
 
-      override def <=(lhs: Set[A], rhs: Set[A]): Option[Boolean] =
-        if (lhs subsetOf rhs) Some(true)
-        else if (rhs subsetOf lhs) Some(false)
-        else None
+      override def partialCompare(lhs: Set[A], rhs: Set[A]): Double =
+        if(lhs == rhs) 0.0
+        else if(lhs subsetOf rhs) -1.0
+        else if(rhs subsetOf lhs) 1.0
+        else Double.NaN
     }
   }
 }

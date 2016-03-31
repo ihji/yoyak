@@ -33,19 +33,22 @@ object MemElems {
     def ops[A <: Galois : ArithmeticOps, D <: Galois : LatticeWithTopOps] = new LatticeOps[GaloisIdentity[AbsValue[A,D]]] {
       val boxOps   = implicitly[LatticeWithTopOps[D]]
       val arithOps = implicitly[ArithmeticOps[A]]
-      override def <=(lhs: AbsValue[A,D], rhs: AbsValue[A,D]): Option[Boolean] = {
+      override def partialCompare(lhs: AbsValue[A,D], rhs: AbsValue[A,D]): Double = {
         (lhs,rhs) match {
-          case (AbsBottom,_) => Some(true)
-          case (_,AbsBottom) => Some(false)
-          case (_,AbsTop) => Some(true)
-          case (AbsTop,_) => Some(false)
+          case (AbsBottom,AbsBottom) => 0.0
+          case (AbsBottom,_) => -1.0
+          case (_,AbsBottom) => 1.0
+          case (AbsTop,AbsTop) => 0.0
+          case (_,AbsTop) => -1.0
+          case (AbsTop,_) => 1.0
           case (AbsRef(id1),AbsRef(id2)) =>
-            if(id1 subsetOf id2) Some(true)
-            else if(id2 subsetOf id1) Some(false)
-            else None
-          case (AbsBox(data1),AbsBox(data2)) => boxOps.<=(data1,data2)
-          case (AbsArith(data1),AbsArith(data2)) => arithOps.<=(data1,data2)
-          case (_,_) => None
+            if(id1 == id2) 0.0
+            else if(id1 subsetOf id2) -1.0
+            else if(id2 subsetOf id1) 1.0
+            else Double.NaN
+          case (AbsBox(data1),AbsBox(data2)) => boxOps.partialCompare(data1,data2)
+          case (AbsArith(data1),AbsArith(data2)) => arithOps.partialCompare(data1,data2)
+          case (_,_) => Double.NaN
         }
       }
 

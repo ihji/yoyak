@@ -35,8 +35,8 @@ object MemDom {
   def ops[A <: Galois : ArithmeticOps, D <: Galois : LatticeWithTopOps] = new LatticeOps[GaloisIdentity[MemDom[A,D]]] {
     implicit val absValueOps = StdObjectModel.absValueOpsWithObject[A,D]
 
-    override def <=(lhs: MemDom[A,D], rhs: MemDom[A,D]): Option[Boolean] = {
-      MapDom.ops[AbsAddr,GaloisIdentity[AbsValue[A,D]]].<=(lhs.rawMap,rhs.rawMap)
+    override def partialCompare(lhs: MemDom[A,D], rhs: MemDom[A,D]): Double = {
+      MapDom.ops[AbsAddr,GaloisIdentity[AbsValue[A,D]]].partialCompare(lhs.rawMap,rhs.rawMap)
     }
 
     override def \/(lhs: MemDom[A,D], rhs: MemDom[A,D]): MemDom[A,D] = {

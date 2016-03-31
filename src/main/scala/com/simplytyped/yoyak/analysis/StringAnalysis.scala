@@ -88,10 +88,11 @@ object StringAnalysis {
 
     override def \/(lhs: Set[Int], rhs: Set[Int]): Set[Int] = lhs ++ rhs
 
-    override def <=(lhs: Set[Int], rhs: Set[Int]): Option[Boolean] =
-      if(lhs subsetOf rhs) Some(true)
-      else if(rhs subsetOf lhs) Some(false)
-      else None
+    override def partialCompare(lhs: Set[Int], rhs: Set[Int]): Double =
+      if(lhs == rhs) 0.0
+      else if(lhs subsetOf rhs) -1.0
+      else if(rhs subsetOf lhs) 1.0
+      else Double.NaN
   }
   implicit val memDomOps : LatticeOps[GaloisIdentity[MemDom[SetInt,SetAbstraction[String]]]] = MemDom.ops[SetInt,SetAbstraction[String]]
 }

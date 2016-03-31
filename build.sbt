@@ -8,6 +8,8 @@ libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion.value
 
 libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4"
 
+libraryDependencies += "org.spire-math" %% "algebra" % "0.3.1"
+
 libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.4" % "test"
 
 libraryDependencies += "org.scalacheck" %% "scalacheck" % "1.12.4" % "test"

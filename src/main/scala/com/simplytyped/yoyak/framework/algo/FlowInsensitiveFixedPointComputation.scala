@@ -18,9 +18,9 @@ trait FlowInsensitiveFixedPointComputation[D<:Galois] extends FlowInsensitiveIte
       val bb = worklist.pop().get
       val prev = next
       next = work(prev,bb)
-      val isStableOpt = ops.<=(next,prev)
-      if(isStableOpt.isEmpty) println("error: abs. transfer func. is not distributive") // XXX: abstract transfer function is not distributive. should report this error.
-      if(!isStableOpt.get) {
+      val isStable = ops.partialCompare(next,prev)
+      if(isStable.isNaN) println("error: abs. transfer func. is not distributive") // XXX: abstract transfer function is not distributive. should report this error.
+      if(isStable > 0) {
         next = if(widening.nonEmpty) {
           doWidening(widening.get)(prev,next,bb)
         } else next

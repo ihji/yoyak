@@ -154,12 +154,14 @@ object IntervalInt {
           Interv.in(newLb,newUb)
       }
 
-    override def <=(lhs: Interval, rhs: Interval): Option[Boolean] =
+    override def partialCompare(lhs: Interval, rhs: Interval): Double =
       (lhs,rhs) match {
-        case (_,IntervTop) => Some(true)
-        case (IntervTop,_) => Some(false)
-        case (IntervBottom,_) => Some(true)
-        case (_,IntervBottom) => Some(false)
+        case (IntervTop,IntervTop) => 0.0
+        case (_,IntervTop) => -1.0
+        case (IntervTop,_) => 1.0
+        case (IntervBottom,IntervBottom) => 0.0
+        case (IntervBottom,_) => -1.0
+        case (_,IntervBottom) => 1.0
         case (Interv(lb1,ub1),Interv(lb2,ub2)) =>
           val lbOrder = (lb1,lb2) match {
             case (IInfMinus,IInfMinus) => 0
@@ -174,9 +176,10 @@ object IntervalInt {
             case (IInt(v1),IInt(v2)) => v1 compare v2
           }
           (lbOrder,ubOrder) match {
-            case (x,y) if x >= 0 && y <= 0 => Some(true)
-            case (x,y) if x <= 0 && y >= 0 && (x != 0 || y != 0) => Some(false)
-            case _ => None
+            case (x,y) if x == 0 && y == 0 => 0.0
+            case (x,y) if x >= 0 && y <= 0 => -1.0
+            case (x,y) if x <= 0 && y >= 0 => 1.0
+            case _ => Double.NaN
           }
       }
   }

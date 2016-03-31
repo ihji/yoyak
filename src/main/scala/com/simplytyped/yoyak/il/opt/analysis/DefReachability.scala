@@ -1,7 +1,7 @@
 package com.simplytyped.yoyak.il.opt.analysis
 
 import com.simplytyped.yoyak.framework.ForwardAnalysis.FlowSensitiveForwardAnalysis
-import com.simplytyped.yoyak.framework.domain.Galois.GaloisIdentity
+import com.simplytyped.yoyak.framework.domain.Galois.{GaloisIdentity, SetAbstraction}
 import com.simplytyped.yoyak.framework.domain.{Galois, LatticeOps, MapDom}
 import com.simplytyped.yoyak.framework.semantics.AbstractTransferable
 import com.simplytyped.yoyak.framework.semantics.AbstractTransferable.Context
@@ -20,20 +20,8 @@ class DefReachability {
 }
 
 object DefReachability {
-  class SetCoreStmt extends Galois {
-    override type Conc = CoreStmt
-    override type Abst = Set[CoreStmt]
-  }
-  implicit val valueOps : LatticeOps[SetCoreStmt] = new LatticeOps[SetCoreStmt] {
-    override def \/(lhs: Set[CoreStmt], rhs: Set[CoreStmt]): Set[CoreStmt] = lhs ++ rhs
+  type SetCoreStmt = SetAbstraction[CoreStmt]
 
-    override val bottom: Set[CoreStmt] = Set.empty[CoreStmt]
-
-    override def <=(lhs: Set[CoreStmt], rhs: Set[CoreStmt]): Option[Boolean] =
-      if(lhs subsetOf rhs) Some(true)
-      else if(rhs subsetOf lhs) Some(false)
-      else None
-  }
   implicit val ops : LatticeOps[GaloisIdentity[MapDom[Local,SetCoreStmt]]] = MapDom.ops[Local,SetCoreStmt]
   implicit val absTransfer : AbstractTransferable[GaloisIdentity[MapDom[Local,SetCoreStmt]]] = new AbstractTransferable[GaloisIdentity[MapDom[Local, SetCoreStmt]]] {
 

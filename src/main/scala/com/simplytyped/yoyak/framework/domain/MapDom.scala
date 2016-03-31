@@ -55,10 +55,11 @@ object MapDom {
   def ops[K,V <: Galois : LatticeOps] = new LatticeOps[GaloisIdentity[MapDom[K,V]]] {
     val valueOps = implicitly[LatticeOps[V]]
 
-    override def <=(lhs: MapDom[K, V], rhs: MapDom[K, V]): Option[Boolean] = {
+    override def partialCompare(lhs: MapDom[K, V], rhs: MapDom[K, V]): Double = {
       // short cuts
-      if(lhs.size == 0 && rhs.size >= 0) return Some(true)
-      if(rhs.size == 0 && lhs.size > 0) return Some(false)
+      if(lhs.size == 0 && rhs.size == 0) return 0.0
+      if(lhs.size == 0 && rhs.size > 0) return -1.0
+      if(rhs.size == 0 && lhs.size > 0) return 1.0
 
       if(lhs.size < rhs.size) {
         val lhsIter = lhs.iterator
@@ -66,61 +67,59 @@ object MapDom {
         while(flag && lhsIter.hasNext) {
           val (k,v) = lhsIter.next()
           val rValue = rhs.get(k)
-          val order = valueOps.<=(v,rValue)
-          if(order.isEmpty || !order.get) flag = false
+          val order = valueOps.partialCompare(v,rValue)
+          if(order.isNaN || order > 0) flag = false
         }
-        if(flag) Some(true) else None
+        if(flag) -1.0 else Double.NaN
       } else if(lhs.size > rhs.size){
         val rhsIter = rhs.iterator
         var flag = true
         while(flag && rhsIter.hasNext) {
           val (k,v) = rhsIter.next()
           val lValue = lhs.get(k)
-          val order = valueOps.<=(v,lValue)
-          if(order.isEmpty || !order.get) flag = false
+          val order = valueOps.partialCompare(v,lValue)
+          if(order.isNaN || order > 0) flag = false
         }
-        if(flag) Some(false) else None
+        if(flag) 1.0 else Double.NaN
       } else {
-        if(lhs.keySet != rhs.keySet) None
+        if(lhs.keySet != rhs.keySet) Double.NaN
         else {
           // lhs.size != 0 && rhs.size != 0
           // find initial order
           val lhsIter = lhs.iterator
-          var initOrderLR : Option[Boolean] = Some(true)
-          var initOrderRL : Option[Boolean] = Some(true)
-          while(initOrderLR.nonEmpty && initOrderLR.get && initOrderRL.nonEmpty && initOrderRL.get && lhsIter.hasNext) {
+          var order = 0.0
+          while(!order.isNaN && order == 0 && lhsIter.hasNext) {
             val (k, lv) = lhsIter.next()
             val rv = rhs.get(k)
-            initOrderLR = valueOps.<=(lv, rv)
-            initOrderRL = valueOps.<=(rv, lv)
+            order = valueOps.partialCompare(lv, rv)
           }
-          if(initOrderLR.nonEmpty && initOrderLR.get && initOrderRL.nonEmpty && initOrderRL.get && !lhsIter.hasNext) Some(true) // equal
-          else if(initOrderLR.isEmpty || initOrderRL.isEmpty) None
+          if(!order.isNaN && order == 0 && !lhsIter.hasNext) 0.0 // equal
+          else if(order.isNaN) Double.NaN
           else {
-            // assume both initOrderLR and initOrderRL are not Some(false). logically impossible case: lv > rv && lv < rv
-            if(initOrderLR.get) {
-              // assume: lhs <= rhs
+            // order != 0
+            if(order < 0) {
+              // assume: lhs < rhs
               // this logic is copied from above
               var flag = true
               while(flag && lhsIter.hasNext) {
                 val (k,lValue) = lhsIter.next()
                 val rValue = rhs.get(k)
-                val order = valueOps.<=(lValue,rValue)
-                if(order.isEmpty || !order.get) flag = false
+                val order = valueOps.partialCompare(lValue,rValue)
+                if(order.isNaN || order > 0) flag = false
               }
-              if(flag) Some(true) else None
+              if(flag) -1.0 else Double.NaN
             }
             else {
-              // assume: lhs >= rhs
+              // assume: lhs > rhs
               // this logic is copied from above
               var flag = true
               while(flag && lhsIter.hasNext) {
                 val (k,lValue) = lhsIter.next()
                 val rValue = rhs.get(k)
-                val order = valueOps.<=(rValue,lValue)
-                if(order.isEmpty || !order.get) flag = false
+                val order = valueOps.partialCompare(rValue,lValue)
+                if(order.isNaN || order > 0) flag = false
               }
-              if(flag) Some(false) else None
+              if(flag) 1.0 else Double.NaN
             }
           }
         }

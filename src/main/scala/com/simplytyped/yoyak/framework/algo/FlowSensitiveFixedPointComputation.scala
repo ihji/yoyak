@@ -25,12 +25,12 @@ trait FlowSensitiveFixedPointComputation[D<:Galois] extends FlowSensitiveIterati
       val prev = getInput(map,prevInputs)
       val (mapOut,next) = work(map,prev,bb)
       val orig = map.get(bb)
-      val isStableOpt = ops.<=(next,orig)
-      if(isStableOpt.isEmpty) {
+      val isStable = ops.partialCompare(next,orig)
+      if(isStable.isNaN) {
         // XXX: abstract transfer function is not distributive. should report this error.
         println("error: abs. transfer func. is not distributive")
       }
-      if(!isStableOpt.get) {
+      if(isStable > 0) {
         val widened = if(widening.nonEmpty) {
           doWidening(widening.get)(orig,next,bb)
         } else next

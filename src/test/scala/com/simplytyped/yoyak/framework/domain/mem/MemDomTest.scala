@@ -1,8 +1,9 @@
 package com.simplytyped.yoyak.framework.domain.mem
 
+import com.simplytyped.yoyak.framework.domain.Galois.SetAbstraction
 import com.simplytyped.yoyak.framework.domain.MapDomTest.SetInt
 import com.simplytyped.yoyak.framework.domain.mem.MemDomTest.SetString
-import com.simplytyped.yoyak.framework.domain.{Galois, ArithmeticOps, LatticeWithTopOps}
+import com.simplytyped.yoyak.framework.domain.{ArithmeticOps, Galois, LatticeWithTopOps}
 import com.simplytyped.yoyak.framework.domain.mem.MemElems._
 import com.simplytyped.yoyak.il.CommonIL.ClassName
 import com.simplytyped.yoyak.il.CommonIL.Statement.Nop
@@ -10,7 +11,7 @@ import com.simplytyped.yoyak.il.CommonIL.Value._
 import org.scalatest.{FunSuite, Matchers}
 
 class MemDomTest extends FunSuite with Matchers {
-  import com.simplytyped.yoyak.framework.domain.mem.MemDomTest.{arithOps,boxOps}
+  import com.simplytyped.yoyak.framework.domain.mem.MemDomTest.arithOps
   test("add and retrieve things") {
     val mem = MemDom.empty[SetInt,SetString]
     val mem2 = mem.update(Local("x")->AbsBox[SetString](Set("x")))
@@ -50,23 +51,8 @@ class MemDomTest extends FunSuite with Matchers {
 }
 
 object MemDomTest {
-  class SetString extends Galois {
-    override type Conc = String
-    override type Abst = Set[String]
-  }
+  type SetString = SetAbstraction[String]
 
-  implicit val boxOps : LatticeWithTopOps[SetString] = new LatticeWithTopOps[SetString] {
-    override def <=(lhs: Set[String], rhs: Set[String]): Option[Boolean] =
-      if(lhs subsetOf rhs) Some(true)
-      else if(rhs subsetOf lhs) Some(false)
-      else None
-
-    override def \/(lhs: Set[String], rhs: Set[String]): Set[String] = lhs ++ rhs
-
-    override def bottom: Set[String] = Set.empty[String]
-
-    override def isTop(v: Set[String]): Boolean = false
-  }
   implicit val arithOps : ArithmeticOps[SetInt] = new ArithmeticOps[SetInt] {
     override def +(lhs: Set[Int], rhs: Set[Int]): Set[Int] = ???
 
@@ -86,9 +72,10 @@ object MemDomTest {
 
     override def \/(lhs: Set[Int], rhs: Set[Int]): Set[Int] = lhs ++ rhs
 
-    override def <=(lhs: Set[Int], rhs: Set[Int]): Option[Boolean] =
-      if(lhs subsetOf rhs) Some(true)
-      else if(rhs subsetOf lhs) Some(false)
-      else None
+    override def partialCompare(lhs: Set[Int], rhs: Set[Int]): Double =
+      if(lhs == rhs) 0.0
+      else if(lhs subsetOf rhs) -1.0
+      else if(rhs subsetOf lhs) 1.0
+      else Double.NaN
   }
 }
