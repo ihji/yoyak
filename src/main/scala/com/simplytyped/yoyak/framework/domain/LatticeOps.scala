@@ -1,6 +1,6 @@
 package com.simplytyped.yoyak.framework.domain
 
-import algebra.PartialOrder
+import cats.PartialOrder
 
 trait LatticeOps[D <: Galois] extends PartialOrder[D#Abst] {
   def \/(lhs: D#Abst, rhs: D#Abst) : D#Abst
