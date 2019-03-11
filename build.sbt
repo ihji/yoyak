@@ -4,7 +4,7 @@ version := "0.1-SNAPSHOT"
 
 scalaVersion := "2.12.8"
 
-crossScalaVerions := List("2.12.8", "2.11.12")
+crossScalaVersions := List("2.12.8", "2.11.12")
 
 libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion.value
 
