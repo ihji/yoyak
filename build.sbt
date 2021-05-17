@@ -2,9 +2,9 @@ name := "yoyak"
 
 version := "0.1-SNAPSHOT"
 
-scalaVersion := "2.13.3"
+scalaVersion := "2.13.5"
 
-crossScalaVersions := List("2.13.3", "2.12.12")
+crossScalaVersions := List("2.13.5", "2.12.13")
 
 libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion.value
 
@@ -27,4 +27,4 @@ libraryDependencies += "commons-cli" % "commons-cli" % "1.2"
 
 enablePlugins(Antlr4Plugin)
 
-antlr4PackageName in Antlr4 := Some("com.simplytyped.yoyak.parser")
+Antlr4 / antlr4PackageName := Some("com.simplytyped.yoyak.parser")
