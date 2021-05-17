@@ -4,35 +4,34 @@ import org.scalatest.FunSuite
 import org.scalatest.Matchers
 import com.simplytyped.yoyak.solver.domain.{PAssign, CNF}
 
-/**
- * Created with IntelliJ IDEA.
- * User: ihji
- * Date: 5/14/12
- * Time: 3:32 AM
- * To change this template use File | Settings | File Templates.
- */
+/** Created with IntelliJ IDEA.
+  * User: ihji
+  * Date: 5/14/12
+  * Time: 3:32 AM
+  * To change this template use File | Settings | File Templates.
+  */
 
 class QCPTest extends FunSuite with Matchers {
   test("simple QCP") {
     import com.simplytyped.yoyak.solver.domain.CNFConversions._
     import com.simplytyped.yoyak.solver.domain.PAssign.str2PAssign
-    val solution : PAssign = "110"
-    val cnf : CNF =
+    val solution: PAssign = "110"
+    val cnf: CNF =
       """p cnf 3 4
         |1 0
         |1 2 0
         |-1 2 3 0
         |-3 0
       """.stripMargin
-    val qcp = new QCP(cnf)
+    val qcp  = new QCP(cnf)
     val cnf$ = qcp.run(List(PAssign.empty))
-    cnf$.get should be (solution)
+    cnf$.get should be(solution)
   }
   test("yet another simple QCP") {
     import com.simplytyped.yoyak.solver.domain.CNFConversions._
     import com.simplytyped.yoyak.solver.domain.PAssign.str2PAssign
-    val solution : PAssign = "00101111011101001101111111001011100011111111110000"
-    val cnf : CNF =
+    val solution: PAssign = "00101111011101001101111111001011100011111111110000"
+    val cnf: CNF =
       """c instance by G3 (http://www.is.titech.ac.jp/~watanabe/gensat/a1/index.html)
         |c solution = 00101111011101001101111111001011100011111111110000
         |p cnf 50 230
@@ -267,8 +266,8 @@ class QCPTest extends FunSuite with Matchers {
         |50 5 -18 0
         |-7 27 31 0
       """.stripMargin
-    val qcp = new QCP(cnf)
+    val qcp  = new QCP(cnf)
     val cnf$ = qcp.run(List(PAssign.empty))
-    cnf$.get should be (solution)
+    cnf$.get should be(solution)
   }
 }

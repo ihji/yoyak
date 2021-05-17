@@ -5,7 +5,7 @@ import org.scalatest.{Matchers, FunSuite}
 class DexlibDexTransformerTest extends FunSuite with Matchers {
   test("simple transformation: sample-app.apk") {
     val dexFile = DexlibDexParser.loadDexFile("test/apk/sample-app.apk")
-    val pgm = (new DexlibDexTransformer).translate(dexFile)
+    val pgm     = (new DexlibDexTransformer).translate(dexFile)
 
     import com.simplytyped.yoyak.il.cfg.CommonILToCFG
     import com.simplytyped.yoyak.analysis.StringAnalysis
@@ -18,6 +18,6 @@ class DexlibDexTransformerTest extends FunSuite with Matchers {
 
     //println(result)
 
-    pgm.findByMethodName("argTest").nonEmpty should be (true)
+    pgm.findByMethodName("argTest").nonEmpty should be(true)
   }
 }

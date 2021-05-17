@@ -3,13 +3,12 @@ package com.simplytyped.yoyak.solver.domain
 import org.scalatest.FunSuite
 import org.scalatest.Matchers
 
-/**
- * Created with IntelliJ IDEA.
- * User: ihji
- * Date: 5/13/12
- * Time: 5:33 PM
- * To change this template use File | Settings | File Templates.
- */
+/** Created with IntelliJ IDEA.
+  * User: ihji
+  * Date: 5/13/12
+  * Time: 5:33 PM
+  * To change this template use File | Settings | File Templates.
+  */
 
 class DIMACSParserTest extends FunSuite with Matchers {
   test("basic DIMACS parsing") {
@@ -22,15 +21,21 @@ class DIMACSParserTest extends FunSuite with Matchers {
         |-1 5 3 4 0
         |-3 -4 0
       """.stripMargin
-    val result = parser.parseAll(parser.cnf,file)
-    result.successful should be (true)
-    result.get should be (Some(
-      CNF(5,3,List(
-        Clause(List(1,-5,4)),
-        Clause(List(-1,5,3,4)),
-        Clause(List(-3,-4))
-      ))
-    ))
+    val result = parser.parseAll(parser.cnf, file)
+    result.successful should be(true)
+    result.get should be(
+      Some(
+        CNF(
+          5,
+          3,
+          List(
+            Clause(List(1, -5, 4)),
+            Clause(List(-1, 5, 3, 4)),
+            Clause(List(-3, -4))
+          )
+        )
+      )
+    )
   }
   test("semantic error DIMACS parsing") {
     val parser = new DIMACSParser {}
@@ -40,8 +45,8 @@ class DIMACSParserTest extends FunSuite with Matchers {
         |-1 6 3 4 0
         |-3 -4 0
       """.stripMargin
-    val result = parser.parseAll(parser.cnf,file)
-    result.successful should be (true)
-    result.get should be (None)
+    val result = parser.parseAll(parser.cnf, file)
+    result.successful should be(true)
+    result.get should be(None)
   }
 }

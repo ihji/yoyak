@@ -16,7 +16,6 @@ libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.8" % "test"
 
 libraryDependencies += "org.scalacheck" %% "scalacheck" % "1.14.1" % "test"
 
-
 libraryDependencies += "org.smali" % "dexlib2" % "2.0.3"
 
 libraryDependencies += "org.apache.logging.log4j" % "log4j-api" % "2.0-rc1"

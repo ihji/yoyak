@@ -11,66 +11,114 @@ import org.antlr.v4.runtime.Token
 import scala.collection.JavaConverters._
 
 class AntlrJavaTransformer {
-  private def getPositionFromToken(t: Token) : Position = {
-    new SourceInfo(t.getLine, t.getLine, t.getCharPositionInLine, t.getCharPositionInLine, t.getTokenSource.getSourceName)
+  private def getPositionFromToken(t: Token): Position = {
+    new SourceInfo(
+      t.getLine,
+      t.getLine,
+      t.getCharPositionInLine,
+      t.getCharPositionInLine,
+      t.getTokenSource.getSourceName
+    )
   }
-  private def typeContextToType(t: TypeContext) : Type.ValueType = {
-    val dim = (t.getChildCount - 1) / 2
+  private def typeContextToType(t: TypeContext): Type.ValueType = {
+    val dim                = (t.getChildCount - 1) / 2
     val classOrInterfaceTy = t.classOrInterfaceType()
     val resultTy =
-      if(classOrInterfaceTy != null) {
+      if (classOrInterfaceTy != null) {
         val name = ClassName(classOrInterfaceTy.getText)
         Type.RefType(name)
       } else {
         val primTy = t.primitiveType()
         primTy.getText match {
           case "boolean" => Type.BooleanType
-          case "char" => Type.CharType
-          case "byte" => Type.ByteType
-          case "short" => Type.ShortType
-          case "int" => Type.IntegerType
-          case "long" => Type.LongType
-          case "float" => Type.FloatType
-          case "double" => Type.DoubleType
+          case "char"    => Type.CharType
+          case "byte"    => Type.ByteType
+          case "short"   => Type.ShortType
+          case "int"     => Type.IntegerType
+          case "long"    => Type.LongType
+          case "float"   => Type.FloatType
+          case "double"  => Type.DoubleType
         }
       }
-    if(dim == 0) resultTy else Type.ArrayType(resultTy,dim)
+    if (dim == 0) resultTy else Type.ArrayType(resultTy, dim)
   }
-  private def formalParameterToIdentity(formalParam: FormalParameterContext, idx: Int) : Identity = {
+  private def formalParameterToIdentity(
+      formalParam: FormalParameterContext,
+      idx: Int
+  ): Identity = {
     val name = formalParam.variableDeclaratorId().Identifier()
-    val ty = typeContextToType(formalParam.`type`())
-    Statement.Identity(Local(name.getText).setType(ty),Param(idx)).setPos(getPositionFromToken(name.getSymbol))
+    val ty   = typeContextToType(formalParam.`type`())
+    Statement
+      .Identity(Local(name.getText).setType(ty), Param(idx))
+      .setPos(getPositionFromToken(name.getSymbol))
   }
-  def blockStatementContextToStmt(blockStmtCtx: BlockStatementContext) : List[CoreStmt] = {
+  def blockStatementContextToStmt(
+      blockStmtCtx: BlockStatementContext
+  ): List[CoreStmt] = {
     List.empty
   }
-  def methodDefToMethod(className: ClassName, methodDef: MethodDeclarationContext) : Option[Method] = {
+  def methodDefToMethod(
+      className: ClassName,
+      methodDef: MethodDeclarationContext
+  ): Option[Method] = {
     val methodName = methodDef.Identifier().getText
 
-    val params = Option(methodDef.formalParameters().formalParameterList()).map{_.formalParameter().asScala.toList}.getOrElse(List.empty)
-      .zipWithIndex.map{case (f,i) => formalParameterToIdentity(f,i)}
-    val paramTy = params.map{_.lv.ty}
+    val params = Option(methodDef.formalParameters().formalParameterList())
+      .map { _.formalParameter().asScala.toList }
+      .getOrElse(List.empty)
+      .zipWithIndex
+      .map { case (f, i) => formalParameterToIdentity(f, i) }
+    val paramTy = params.map { _.lv.ty }
 
-    val methodBody = methodDef.methodBody().block().blockStatement().asScala.toList.flatMap{blockStatementContextToStmt}
+    val methodBody =
+      methodDef.methodBody().block().blockStatement().asScala.toList.flatMap {
+        blockStatementContextToStmt
+      }
 
     val stmts = params ++ methodBody
-    Some(Method(MethodSig(className,methodName,paramTy),stmts))
+    Some(Method(MethodSig(className, methodName, paramTy), stmts))
   }
-  def classDefToClazz(classDef: ClassDeclarationContext) : Option[Clazz] = {
+  def classDefToClazz(classDef: ClassDeclarationContext): Option[Clazz] = {
     val className = ClassName(classDef.Identifier().getSymbol.getText)
-    val superClass = Option(classDef.`type`()).map{typeContextToType}.map{_.asInstanceOf[RefType].className}.getOrElse(ClassName("java.lang.Object"))
-    val interfaces = Option(classDef.typeList()).map{_.`type`().asScala.map{typeContextToType}.map{_.asInstanceOf[RefType].className}.toSet}.getOrElse(Set.empty[ClassName])
+    val superClass = Option(classDef.`type`())
+      .map { typeContextToType }
+      .map { _.asInstanceOf[RefType].className }
+      .getOrElse(ClassName("java.lang.Object"))
+    val interfaces = Option(classDef.typeList())
+      .map {
+        _.`type`().asScala
+          .map { typeContextToType }
+          .map { _.asInstanceOf[RefType].className }
+          .toSet
+      }
+      .getOrElse(Set.empty[ClassName])
 
-    val memberDefs = classDef.classBody().classBodyDeclaration().asScala.map{_.memberDeclaration()}.toList
-    val methodDefs = memberDefs.filter{_.methodDeclaration() != null}
-    val methods = methodDefs.flatMap{x => methodDefToMethod(className,x.methodDeclaration())}
+    val memberDefs = classDef
+      .classBody()
+      .classBodyDeclaration()
+      .asScala
+      .map { _.memberDeclaration() }
+      .toList
+    val methodDefs = memberDefs.filter { _.methodDeclaration() != null }
+    val methods = methodDefs.flatMap { x =>
+      methodDefToMethod(className, x.methodDeclaration())
+    }
 
-    Some(Clazz(className,methods.map{x=>(x.name,x)}.toMap,interfaces,superClass))
+    Some(
+      Clazz(
+        className,
+        methods.map { x => (x.name, x) }.toMap,
+        interfaces,
+        superClass
+      )
+    )
   }
-  def compilationUnitToProgram(units: CompilationUnitContext) : Program = {
-    val typeDefs = units.typeDeclaration().asScala.toList
-    val classDefs = typeDefs.filter{_.classDeclaration() != null}
-    val classes  = classDefs.flatMap{x => classDefToClazz(x.classDeclaration())}
-    Program(classes.map{x=>(x.name,x)}.toMap)
+  def compilationUnitToProgram(units: CompilationUnitContext): Program = {
+    val typeDefs  = units.typeDeclaration().asScala.toList
+    val classDefs = typeDefs.filter { _.classDeclaration() != null }
+    val classes = classDefs.flatMap { x =>
+      classDefToClazz(x.classDeclaration())
+    }
+    Program(classes.map { x => (x.name, x) }.toMap)
   }
 }

@@ -5,7 +5,7 @@ import org.jf.dexlib2.dexbacked.DexBackedDexFile
 
 object DexlibDexParser {
   val defaultAPIVersion = 15
-  def loadDexFile(path: String) : DexBackedDexFile = {
+  def loadDexFile(path: String): DexBackedDexFile = {
     DexFileFactory.loadDexFile(path, defaultAPIVersion)
   }
 }

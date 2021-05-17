@@ -5,10 +5,10 @@ import com.simplytyped.yoyak.il.hierarchy.ClassHierarchy
 
 /* global state */
 case class Global(
-  pgm : Option[Program] = None,
-  classHierarchy : Option[ClassHierarchy] = None
+    pgm: Option[Program] = None,
+    classHierarchy: Option[ClassHierarchy] = None
 )
 
 object Global {
-  val empty = Global(None,None)
+  val empty = Global(None, None)
 }

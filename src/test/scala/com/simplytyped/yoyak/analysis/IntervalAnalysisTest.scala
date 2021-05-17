@@ -4,17 +4,17 @@ import com.simplytyped.yoyak.il.CommonIL.Program
 import com.simplytyped.yoyak.il.PrettyPrinter
 import com.simplytyped.yoyak.il.cfg.CommonILToCFG
 import com.simplytyped.yoyak.parser.cil.{CommonILParser, CommonILTransform}
-import org.scalatest.{FunSuite,Matchers}
+import org.scalatest.{FunSuite, Matchers}
 
 class IntervalAnalysisTest extends FunSuite with Matchers {
   test("simple test") {
     val parser = new CommonILParser
     val result = parser.parseAll(parser.clazz, IntervalAnalysisTest.inputPgm)
-    if(!result.successful) println(result)
+    if (!result.successful) println(result)
     val clazz = new CommonILTransform().transform(result.get)
-    val pgm = Program(Map(clazz.name->clazz))
-    val mtd = pgm.findByMethodName("bar").head
-    val cfg = new CommonILToCFG().transform(mtd)
+    val pgm   = Program(Map(clazz.name -> clazz))
+    val mtd   = pgm.findByMethodName("bar").head
+    val cfg   = new CommonILToCFG().transform(mtd)
     //println(new PrettyPrinter().toDot(cfg))
     println(new PrettyPrinter().toString(mtd))
 
@@ -22,7 +22,7 @@ class IntervalAnalysisTest extends FunSuite with Matchers {
 
     println(result2)
 
-    pgm.findByMethodName("bar").nonEmpty should be (true)
+    pgm.findByMethodName("bar").nonEmpty should be(true)
   }
 }
 

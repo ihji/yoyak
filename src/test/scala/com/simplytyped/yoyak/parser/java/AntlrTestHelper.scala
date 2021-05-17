@@ -19,5 +19,6 @@ object AntlrTestHelper {
       |    }
       |}
     """.stripMargin
-  def toStream(str: String) : InputStream = new ByteArrayInputStream(str.getBytes)
+  def toStream(str: String): InputStream =
+    new ByteArrayInputStream(str.getBytes)
 }

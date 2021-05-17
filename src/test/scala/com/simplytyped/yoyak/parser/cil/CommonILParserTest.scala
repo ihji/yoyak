@@ -7,7 +7,7 @@ class CommonILParserTest extends FunSuite with Matchers {
   test("assign statement") {
     val parser = new CommonILParser
     val result = parser.parseAll(parser.clazz, CommonILParserTest.inputPgm)
-    val clazz = new CommonILTransform().transform(result.get)
+    val clazz  = new CommonILTransform().transform(result.get)
     println(new PrettyPrinter().toString(clazz))
   }
 }
