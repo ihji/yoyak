@@ -1,10 +1,9 @@
 package com.simplytyped.yoyak.parser.java
 
-import java.io.{ByteArrayInputStream, InputStream}
+import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.matchers.should.Matchers
 
-import org.scalatest.{Matchers, FunSuite}
-
-class AntlrJavaParserTest extends FunSuite with Matchers {
+class AntlrJavaParserTest extends AnyFunSuite with Matchers {
   import AntlrTestHelper._
   test("can parser basic java file") {
     val parser = new AntlrJavaParser

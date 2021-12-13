@@ -1,13 +1,14 @@
 package com.simplytyped.yoyak.graph.algo
 
-import org.scalatest.{Matchers, FunSuite}
+import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.matchers.should.Matchers
 import com.simplytyped.yoyak.graph.GraphGenerator.{
   IntEdge,
   IntNode,
   IntegerImmutableGraph
 }
 
-class GraphTraverseTest extends FunSuite with Matchers {
+class GraphTraverseTest extends AnyFunSuite with Matchers {
   test("depth first traverse") {
     val graph: IntegerImmutableGraph =
       """digraph yoyak {

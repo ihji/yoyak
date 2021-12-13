@@ -1,9 +1,10 @@
 package com.simplytyped.yoyak.parser.cil
 
 import com.simplytyped.yoyak.il.PrettyPrinter
-import org.scalatest.{FunSuite, Matchers}
+import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.matchers.should.Matchers
 
-class CommonILParserTest extends FunSuite with Matchers {
+class CommonILParserTest extends AnyFunSuite with Matchers {
   test("assign statement") {
     val parser = new CommonILParser
     val result = parser.parseAll(parser.clazz, CommonILParserTest.inputPgm)

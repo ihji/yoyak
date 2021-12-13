@@ -2,9 +2,10 @@ package com.simplytyped.yoyak.framework.domain.arith
 
 import com.simplytyped.yoyak.framework.domain.arith.Interval._
 import com.simplytyped.yoyak.framework.domain.arith.IntervalInt.arithOps
-import org.scalatest.{Matchers, FunSuite}
+import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.matchers.should.Matchers
 
-class IntervalTest extends FunSuite with Matchers {
+class IntervalTest extends AnyFunSuite with Matchers {
   test("add operation 1") {
     val interv2 = Interv.of(2)
     val interv3 = Interv.of(3)

@@ -1,8 +1,9 @@
 package com.simplytyped.yoyak.parser.dex
 
-import org.scalatest.{Matchers, FunSuite}
+import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.matchers.should.Matchers
 
-class DexlibDexTransformerTest extends FunSuite with Matchers {
+class DexlibDexTransformerTest extends AnyFunSuite with Matchers {
   test("simple transformation: sample-app.apk") {
     val dexFile = DexlibDexParser.loadDexFile("test/apk/sample-app.apk")
     val pgm     = (new DexlibDexTransformer).translate(dexFile)

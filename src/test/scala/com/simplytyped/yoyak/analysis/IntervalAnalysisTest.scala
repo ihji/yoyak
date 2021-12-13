@@ -4,9 +4,10 @@ import com.simplytyped.yoyak.il.CommonIL.Program
 import com.simplytyped.yoyak.il.PrettyPrinter
 import com.simplytyped.yoyak.il.cfg.CommonILToCFG
 import com.simplytyped.yoyak.parser.cil.{CommonILParser, CommonILTransform}
-import org.scalatest.{FunSuite, Matchers}
+import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.matchers.should.Matchers
 
-class IntervalAnalysisTest extends FunSuite with Matchers {
+class IntervalAnalysisTest extends AnyFunSuite with Matchers {
   test("simple test") {
     val parser = new CommonILParser
     val result = parser.parseAll(parser.clazz, IntervalAnalysisTest.inputPgm)

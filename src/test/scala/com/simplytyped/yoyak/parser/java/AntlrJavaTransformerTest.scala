@@ -1,8 +1,9 @@
 package com.simplytyped.yoyak.parser.java
 
-import org.scalatest.{FunSuite, Matchers}
+import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.matchers.should.Matchers
 
-class AntlrJavaTransformerTest extends FunSuite with Matchers {
+class AntlrJavaTransformerTest extends AnyFunSuite with Matchers {
   import AntlrTestHelper._
   ignore("basic transform test") {
     val parser = new AntlrJavaParser

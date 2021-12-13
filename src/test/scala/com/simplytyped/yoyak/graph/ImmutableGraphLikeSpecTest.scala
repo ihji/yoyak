@@ -1,7 +1,8 @@
 package com.simplytyped.yoyak.graph
 
-import org.scalatest.{FunSuite, Matchers}
-import org.scalatest.prop.Checkers
+import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.matchers.should.Matchers
+import org.scalatestplus.scalacheck.Checkers
 import org.scalacheck.Prop._
 import com.simplytyped.yoyak.graph.GraphGenerator.{
   IntEdge,
@@ -11,7 +12,7 @@ import com.simplytyped.yoyak.graph.GraphGenerator.{
 
 /** Graph build test
   */
-class ImmutableGraphLikeSpecTest extends FunSuite with Matchers with Checkers {
+class ImmutableGraphLikeSpecTest extends AnyFunSuite with Matchers with Checkers {
   test("add one edge") {
     check {
       forAll(GraphGenerator.graphGen) { (g: IntegerImmutableGraph) =>

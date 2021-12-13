@@ -2,9 +2,10 @@ package com.simplytyped.yoyak.framework.domain
 
 import com.simplytyped.yoyak.framework.domain.Galois.SetAbstraction
 import com.simplytyped.yoyak.framework.domain.MapDomTest.SetInt
-import org.scalatest.{FunSuite, Matchers}
+import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.matchers.should.Matchers
 
-class MapDomTest extends FunSuite with Matchers {
+class MapDomTest extends AnyFunSuite with Matchers {
   test("MapDom ordering (<=) test: unrelated") {
     val map1     = MapDom.empty[Int, SetInt].update(1 -> Set(1, 2, 3))
     val map2     = MapDom.empty[Int, SetInt].update(2 -> Set(1, 2, 3))

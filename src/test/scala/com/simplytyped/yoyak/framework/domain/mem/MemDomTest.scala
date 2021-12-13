@@ -12,9 +12,10 @@ import com.simplytyped.yoyak.framework.domain.mem.MemElems._
 import com.simplytyped.yoyak.il.CommonIL.ClassName
 import com.simplytyped.yoyak.il.CommonIL.Statement.Nop
 import com.simplytyped.yoyak.il.CommonIL.Value._
-import org.scalatest.{FunSuite, Matchers}
+import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.matchers.should.Matchers
 
-class MemDomTest extends FunSuite with Matchers {
+class MemDomTest extends AnyFunSuite with Matchers {
   import com.simplytyped.yoyak.framework.domain.mem.MemDomTest.arithOps
   test("add and retrieve things") {
     val mem  = MemDom.empty[SetInt, SetString]

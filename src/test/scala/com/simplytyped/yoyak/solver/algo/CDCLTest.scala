@@ -1,7 +1,7 @@
 package com.simplytyped.yoyak.solver.algo
 
-import org.scalatest.FunSuite
-import org.scalatest.Matchers
+import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.matchers.should.Matchers
 import com.simplytyped.yoyak.solver.domain.{CNF, PAssign}
 
 /** Created with IntelliJ IDEA.
@@ -11,7 +11,7 @@ import com.simplytyped.yoyak.solver.domain.{CNF, PAssign}
   * To change this template use File | Settings | File Templates.
   */
 
-class CDCLTest extends FunSuite with Matchers {
+class CDCLTest extends AnyFunSuite with Matchers {
   test("simple CDCL") {
     import com.simplytyped.yoyak.solver.domain.CNFConversions._
     import com.simplytyped.yoyak.solver.domain.PAssign.str2PAssign
