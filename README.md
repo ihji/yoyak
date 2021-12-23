@@ -1,6 +1,6 @@
 # yoyak
 
-[![Build Status](https://travis-ci.com/ihji/yoyak.svg?branch=develop)](https://travis-ci.com/ihji/yoyak)
+[![Build Status](https://github.com/ihji/yoyak/actions/workflows/scala.yml/badge.svg)](https://github.com/ihji/yoyak/actions/workflows/scala.yml)
 
 Generic program analysis engine based on the theory of abstract interpretation.
 This project is at the *very* early stage (i.e. not usable for any purpose except its own development).
