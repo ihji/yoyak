@@ -4,7 +4,7 @@ version := "0.1-SNAPSHOT"
 
 scalaVersion := "2.13.16"
 
-//scalacOptions += "-Xsource:3"
+scalacOptions += "-Xsource:3"
 
 libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "2.1.0"
 

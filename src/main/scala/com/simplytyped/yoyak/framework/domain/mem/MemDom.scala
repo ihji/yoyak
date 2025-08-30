@@ -29,8 +29,8 @@ object MemDom {
       D <: Galois: Widening: LatticeWithTopOps
   ] =
     new Widening[GaloisIdentity[MemDom[A, D]]] {
-      implicit val wideningAbsValue = StdObjectModel.wideningWithObject[A, D]
-      implicit val absValueOps      = StdObjectModel.absValueOpsWithObject[A, D]
+      implicit val wideningAbsValue: Widening[GaloisIdentity[AbsValue[A, D]]] = StdObjectModel.wideningWithObject[A, D]
+      implicit val absValueOps: LatticeOps[GaloisIdentity[AbsValue[A, D]]] = StdObjectModel.absValueOpsWithObject[A, D]
 
       override def <>(x: MemDom[A, D], y: MemDom[A, D]): MemDom[A, D] = {
         val newRawMap = MapDom
@@ -44,7 +44,7 @@ object MemDom {
 
   def ops[A <: Galois: ArithmeticOps, D <: Galois: LatticeWithTopOps] =
     new LatticeOps[GaloisIdentity[MemDom[A, D]]] {
-      implicit val absValueOps = StdObjectModel.absValueOpsWithObject[A, D]
+      implicit val absValueOps: LatticeOps[GaloisIdentity[AbsValue[A, D]]] = StdObjectModel.absValueOpsWithObject[A, D]
 
       override def partialCompare(
           lhs: MemDom[A, D],

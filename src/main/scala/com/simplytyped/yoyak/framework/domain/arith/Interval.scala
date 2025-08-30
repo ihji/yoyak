@@ -3,7 +3,7 @@ package com.simplytyped.yoyak.framework.domain.arith
 import com.simplytyped.yoyak.framework.domain.arith.Interval._
 
 sealed abstract class Interval
-case class Interv private (lb: IntWithInfMinus, ub: IntWithInf)
+case class Interv(lb: IntWithInfMinus, ub: IntWithInf)
     extends Interval {
   assert(
     ub == IInf || lb == IInfMinus ||

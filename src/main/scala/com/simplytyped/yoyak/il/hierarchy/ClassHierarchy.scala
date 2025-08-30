@@ -67,6 +67,6 @@ object ClassHierarchy {
   }
   case class Inheritance(from: TypeDef, to: TypeDef) extends EdgeLike[TypeDef] {
     type L = Option[Nothing]
-    val label = None
+    val label: Option[Nothing] = None
   }
 }

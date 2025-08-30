@@ -18,7 +18,7 @@ trait StdObjectModel[A <: Galois, D <: Galois, This <: StdObjectModel[
   implicit val arithOps: ArithmeticOps[A]
   implicit val boxedOps: LatticeWithTopOps[D]
 
-  implicit val absValueOps = absValueOpsWithObject[A, D]
+  implicit val absValueOps: LatticeOps[GaloisIdentity[AbsValue[A, D]]] = absValueOpsWithObject[A, D]
 
   protected[mem] var rawMap =
     MapDom.empty[AbsAddr, GaloisIdentity[AbsValue[A, D]]]
@@ -139,7 +139,7 @@ object StdObjectModel {
 
   class AbsObject[A <: Galois: ArithmeticOps, D <: Galois: LatticeWithTopOps]
       extends AbsValue[A, D] {
-    implicit val absValueOps = absValueOpsWithObject[A, D]
+    implicit val absValueOps: LatticeOps[GaloisIdentity[AbsValue[A, D]]] = absValueOpsWithObject[A, D]
 
     protected[mem] var rawFieldMap =
       MapDom.empty[String, GaloisIdentity[AbsValue[A, D]]]
@@ -221,7 +221,7 @@ object StdObjectModel {
 
   def wideningWithObject[A <: Galois: Widening, D <: Galois: Widening] =
     new Widening[GaloisIdentity[AbsValue[A, D]]] {
-      implicit val wideningAbsValue = AbsValue.widening[A, D]
+      implicit val wideningAbsValue: Widening[GaloisIdentity[AbsValue[A, D]]] = AbsValue.widening[A, D]
       override def <>(x: AbsValue[A, D], y: AbsValue[A, D]): AbsValue[A, D] = {
         (x, y) match {
           case (_, _)

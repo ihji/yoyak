@@ -16,20 +16,20 @@ sealed abstract class Bool extends AbsDomLike[Bool] {
 case object Top extends Bool {
   def isTop = true
 
-  def neg = Top
+  def neg: Bool = Top
 
-  def <<=(other: Bool) =
+  def <<=(other: Bool): Option[Boolean] =
     if (other == Top) Some(true) else Some(false)
 
-  def ++(other: Bool) = Top
+  def ++(other: Bool): Bool = Top
 }
 sealed abstract class ConcreteBool extends Bool
 case object F extends ConcreteBool {
   def isTop = false
 
-  def neg = T
+  def neg: Bool = T
 
-  def <<=(other: Bool) =
+  def <<=(other: Bool): Option[Boolean] =
     other match {
       case Top => Some(true)
       case T   => None
@@ -37,7 +37,7 @@ case object F extends ConcreteBool {
       case Bot => Some(false)
     }
 
-  def ++(other: Bool) =
+  def ++(other: Bool): Bool =
     other match {
       case Top => Top
       case T   => Top
@@ -48,9 +48,9 @@ case object F extends ConcreteBool {
 case object T extends ConcreteBool {
   def isTop = false
 
-  def neg = F
+  def neg: Bool = F
 
-  def <<=(other: Bool) =
+  def <<=(other: Bool): Option[Boolean] =
     other match {
       case Top => Some(true)
       case T   => Some(true)
@@ -69,11 +69,11 @@ case object T extends ConcreteBool {
 case object Bot extends Bool {
   def isTop = false
 
-  def neg = Bot
+  def neg: Bool = Bot
 
-  def <<=(other: Bool) = Some(true)
+  def <<=(other: Bool): Option[Boolean] = Some(true)
 
-  def ++(other: Bool) =
+  def ++(other: Bool): Bool =
     if (other == Bot) Bot else other
 }
 
@@ -127,7 +127,7 @@ object PAssign {
 
 case class PAssignTop(conf: PAssign) extends PAssignDom {
   def isTop = true
-  def <<=(other: PAssignDom) =
+  def <<=(other: PAssignDom): Option[Boolean] =
     if (other.isInstanceOf[PAssignTop]) Some(true) else Some(false)
-  def ++(other: PAssignDom) = this
+  def ++(other: PAssignDom): PAssignDom = this
 }

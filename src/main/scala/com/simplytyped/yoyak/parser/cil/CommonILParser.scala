@@ -23,7 +23,7 @@ class CommonILParser extends JavaTokenParsers {
   def identifierWithType: Parser[(Ident, Type)] =
     identifier ~ ":" ~ ty ^^ { case x ~ _ ~ y => (x, y) }
 
-  def block: Parser[Block] = positioned("{" ~> rep(cilstmt) <~ "}" ^^ Block)
+  def block: Parser[Block] = positioned("{" ~> rep(cilstmt) <~ "}" ^^ Block.apply)
 
   def cilstmt: Parser[CILStmt] =
     positioned(ifstmt | whilestmt | assignstmt | invokestmt | returnstmt)
@@ -55,7 +55,7 @@ class CommonILParser extends JavaTokenParsers {
     )
   def returnstmt: Parser[Return] =
     positioned(
-      "return" ~> opt(value) <~ ";" ^^ Return
+      "return" ~> opt(value) <~ ";" ^^ Return.apply
     )
 
   def value: Parser[Value] =
@@ -76,8 +76,8 @@ class CommonILParser extends JavaTokenParsers {
   private def othervalue = opt(operator ~ value)
   def cinteger: Parser[CInteger] =
     positioned(wholeNumber ^^ { x => CInteger(x.toInt) })
-  def cstring: Parser[CString]  = positioned(stringLiteral ^^ CString)
-  def identifier: Parser[Ident] = positioned(ident ^^ Ident)
+  def cstring: Parser[CString]  = positioned(stringLiteral ^^ CString.apply)
+  def identifier: Parser[Ident] = positioned(ident ^^ Ident.apply)
 
   def operator: Parser[Operator] =
     "+" ^^ { _ => Add } |

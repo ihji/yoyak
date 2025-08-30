@@ -263,7 +263,7 @@ class DexlibDexTransformer {
         val revLists = table.foldLeft(List.empty[Int], List.empty[Int]) {
           case ((ks, vs), x) => (x.getKey :: ks, x.getOffset :: vs)
         }
-        val keys = revLists._1.reverse.map { IntegerConstant }
+        val keys = revLists._1.reverse.map { IntegerConstant.apply }
         val targets = revLists._2.reverse.map { x =>
           new Target().setStmt(
             Placeholder(context.instrs(offsetToIndex(idx, x)))
@@ -280,7 +280,7 @@ class DexlibDexTransformer {
         val revLists = table.foldLeft(List.empty[Int], List.empty[Int]) {
           case ((ks, vs), x) => (x.getKey :: ks, x.getOffset :: vs)
         }
-        val keys = revLists._1.reverse.map { IntegerConstant }
+        val keys = revLists._1.reverse.map { IntegerConstant.apply }
         val targets = revLists._2.reverse.map { x =>
           new Target().setStmt(
             Placeholder(context.instrs(offsetToIndex(idx, x)))
@@ -1701,7 +1701,7 @@ class DexlibDexTransformer {
 
         def postProcess(stmts: List[Stmt]) = {
           val firstPassMap: Map[Stmt, Stmt] =
-            instrs.map { Placeholder }.zip(stmts).toMap
+            instrs.map { Placeholder.apply }.zip(stmts).toMap
           val firstPass     = CommonILHelper.stmtSubstitute(firstPassMap)(stmts)
           val secondPassMap = stmts.zip(firstPass).toMap
           val secondPass =

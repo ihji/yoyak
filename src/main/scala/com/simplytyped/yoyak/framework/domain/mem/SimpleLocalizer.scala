@@ -53,7 +53,7 @@ class SimpleLocalizer[
         obj.rawFieldMap.foldLeft(Set.empty[AbsAddr]) {
           case (s, (_, fieldValue)) => s ++ getAddrsFromValue(fieldValue)
         }
-      case AbsRef(ids) => ids.map { AbsAddr }
+      case AbsRef(ids) => ids.map { AbsAddr.apply }
       case _           => Set.empty
     }
   }

@@ -18,7 +18,7 @@ class VarSplitting {
   var renameMap = Map.empty[CoreStmt, Local]
   private def generateRenameMap(
       defMap: MapDom[BasicBlock, GaloisIdentity[MapDom[Local, SetCoreStmt]]]
-  ) {
+  ): Unit = {
     val defGroup = defMap
       .foldLeft(Map.empty[CoreStmt, MSet[CoreStmt]]) {
         case (defGroupMap, (_, m)) =>

@@ -34,8 +34,8 @@ object BasicBlock {
   }
   class CoreStatementContainer extends AbstractStatementContainer {
     private var stmts: List[CoreStmt] = List.empty
-    def getStmts                      = stmts
-    def setStmts(s: List[CoreStmt]) = { stmts = s; this }
+    def getStmts: List[CoreStmt] = stmts
+    def setStmts(s: List[CoreStmt]): AbstractStatementContainer = { stmts = s; this }
   }
   def apply(methodSig: MethodSig)(stmts: List[CoreStmt]): BasicBlock = {
     idCounter += 1

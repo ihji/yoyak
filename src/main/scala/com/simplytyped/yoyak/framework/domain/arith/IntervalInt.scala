@@ -210,24 +210,22 @@ object IntervalInt {
             }
         }
     }
-  implicit val widening = new Widening[IntervalInt] {
-    override def <>(x: Interval, y: Interval): Interval = {
-      (x, y) match {
-        case (IntervTop, _)    => IntervTop
-        case (_, IntervTop)    => IntervTop
-        case (IntervBottom, x) => x
-        case (_, IntervBottom) => IntervBottom
-        case (Interv(lb1, ub1), Interv(lb2, ub2)) =>
-          val newLb = (lb1, lb2) match {
-            case (IInt(v1), IInt(v2)) if v1 <= v2 => IInt(v1)
-            case _                                => IInfMinus
-          }
-          val newUb = (ub1, ub2) match {
-            case (IInt(v1), IInt(v2)) if v2 <= v1 => IInt(v1)
-            case _                                => IInf
-          }
-          Interv.in(newLb, newUb)
-      }
+  implicit val widening: Widening[IntervalInt] = (x: Interval, y: Interval) => {
+    (x, y) match {
+      case (IntervTop, _) => IntervTop
+      case (_, IntervTop) => IntervTop
+      case (IntervBottom, x) => x
+      case (_, IntervBottom) => IntervBottom
+      case (Interv(lb1, ub1), Interv(lb2, ub2)) =>
+        val newLb = (lb1, lb2) match {
+          case (IInt(v1), IInt(v2)) if v1 <= v2 => IInt(v1)
+          case _ => IInfMinus
+        }
+        val newUb = (ub1, ub2) match {
+          case (IInt(v1), IInt(v2)) if v2 <= v1 => IInt(v1)
+          case _ => IInf
+        }
+        Interv.in(newLb, newUb)
     }
   }
 }

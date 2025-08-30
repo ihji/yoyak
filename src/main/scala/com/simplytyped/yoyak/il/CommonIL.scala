@@ -293,31 +293,31 @@ object CommonIL {
 
     sealed abstract class Constant extends Instant
     case class IntegerConstant(v: Int) extends Constant {
-      override final def ty = Type.IntegerType
+      override final def ty: Type.ValueType = Type.IntegerType
     }
     case class LongConstant(v: Long) extends Constant {
-      override final def ty = Type.LongType
+      override final def ty: Type.ValueType = Type.LongType
     }
     case class FloatConstant(v: Float) extends Constant {
-      override final def ty = Type.FloatType
+      override final def ty: Type.ValueType = Type.FloatType
     }
     case class DoubleConstant(v: Double) extends Constant {
-      override final def ty = Type.DoubleType
+      override final def ty: Type.ValueType = Type.DoubleType
     }
     case class CharConstant(v: Char) extends Constant {
-      override final def ty = Type.CharType
+      override final def ty: Type.ValueType = Type.CharType
     }
     case class ByteConstant(v: Byte) extends Constant {
-      override final def ty = Type.ByteType
+      override final def ty: Type.ValueType = Type.ByteType
     }
     case class BooleanConstant(v: Boolean) extends Constant {
-      override final def ty = Type.BooleanType
+      override final def ty: Type.ValueType = Type.BooleanType
     }
     case class ShortConstant(v: Short) extends Constant {
-      override final def ty = Type.ShortType
+      override final def ty: Type.ValueType = Type.ShortType
     }
     case class StringConstant(s: String) extends Constant {
-      override final def ty = Type.CommonTypes.String
+      override final def ty: Type.ValueType = Type.CommonTypes.String
     }
     case class ClassConstant(refTy: Type.ReferenceType) extends Constant
     case object NullConstant                            extends Constant
