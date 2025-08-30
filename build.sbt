@@ -2,9 +2,9 @@ name := "yoyak"
 
 version := "0.1-SNAPSHOT"
 
-scalaVersion := "2.13.7"
+scalaVersion := "2.13.16"
 
-libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion.value
+//scalacOptions += "-Xsource:3"
 
 libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "2.1.0"
 

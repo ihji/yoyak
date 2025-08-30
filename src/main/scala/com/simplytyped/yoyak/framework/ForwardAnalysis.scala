@@ -21,7 +21,7 @@ object ForwardAnalysis {
       val widening: Option[Widening[D]] = None
   ) extends FlowInsensitiveFixedPointComputation[D]
       with WideningAtLoopHeads[D] {
-    def getNextBlocks(bb: BasicBlock) = cfg.getNexts(bb).toList
+    def getNextBlocks(bb: BasicBlock): Seq[BasicBlock] = cfg.getNexts(bb).toList
     def compute(input: D#Abst): D#Abst = {
       val startNodes = cfg.getEntry.toList.flatMap { getNextBlocks }
       computeFixedPoint(input, startNodes)
@@ -34,8 +34,8 @@ object ForwardAnalysis {
       val widening: Option[Widening[D]] = None
   ) extends FlowSensitiveFixedPointComputation[D]
       with WideningAtLoopHeads[D] {
-    def getNextBlocks(bb: BasicBlock) = cfg.getNexts(bb).toList
-    def memoryFetcher(map: MapDom[BasicBlock, D], b: BasicBlock) =
+    def getNextBlocks(bb: BasicBlock): Seq[BasicBlock] = cfg.getNexts(bb).toList
+    def memoryFetcher(map: MapDom[BasicBlock, D], b: BasicBlock): Seq[D#Abst] =
       cfg.getPrevs(b).toList.map { map.get }
     def compute: MapDom[BasicBlock, D] = {
       val startNodes = cfg.getEntry.toList.flatMap { getNextBlocks }

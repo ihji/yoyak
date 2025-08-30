@@ -111,14 +111,14 @@ case class PAssign(map: MapDom[Int, Bool]) extends PAssignDom {
 
 object PAssign {
   val empty = PAssign(MapDom(Map.empty))
-  class Parser extends RegexParsers {
+  class PAssignParser extends RegexParsers {
     def bool: Parser[Bool] =
       "0" ^^ { _ => F } | "1" ^^ { _ => T }
     def assign: Parser[PAssign] =
       rep1(bool) ^^ { l => PAssign(MapDom((1 to l.length).zip(l).toMap)) }
   }
   implicit def str2PAssign(str: String): PAssign = {
-    val parser = new Parser
+    val parser = new PAssignParser
     val result = parser.parseAll(parser.assign, str)
     if (result.successful) result.get
     else throw new Exception(result.toString)

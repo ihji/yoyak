@@ -40,11 +40,11 @@ class OptionParser {
     lineBuilder.foreach { _(options, cmdline) }
     options
   }
-  def printUsage() {
+  def printUsage(): Unit = {
     val formatter = new HelpFormatter
     formatter.printHelp("yoyak", opts)
   }
-  def parse(args: Array[String]) {
+  def parse(args: Array[String]): Unit = {
     val parser  = new PosixParser
     val cmdline = parser.parse(opts, args)
     val options = generateOptions(cmdline)
