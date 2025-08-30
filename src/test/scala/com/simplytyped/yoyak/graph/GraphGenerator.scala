@@ -8,7 +8,7 @@ import org.scalacheck.Arbitrary.arbitrary
 object GraphGenerator {
   case class IntNode(data: Int) extends NodeLike[IntNode] { type D = Int }
   case class IntEdge(from: IntNode, to: IntNode) extends EdgeLike[IntNode] {
-    type L = Option[Nothing]; val label = None
+    type L = Option[Nothing]; val label: Option[Nothing] = None
   }
   case class IntegerImmutableGraph(
       nodes: Set[IntNode],
