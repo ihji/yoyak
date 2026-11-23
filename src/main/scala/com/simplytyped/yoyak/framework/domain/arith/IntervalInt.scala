@@ -210,7 +210,7 @@ object IntervalInt {
             }
         }
     }
-  implicit val widening = new Widening[IntervalInt] {
+  implicit val widening: Widening[IntervalInt] = new Widening[IntervalInt] {
     override def <>(x: Interval, y: Interval): Interval = {
       (x, y) match {
         case (IntervTop, _)    => IntervTop

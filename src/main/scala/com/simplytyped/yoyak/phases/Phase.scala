@@ -5,7 +5,7 @@ import com.simplytyped.yoyak.Global
 trait Phase {
   private var nextPhase: Option[Phase] = None
 
-  def dependsOn(prevPhase: Phase) { prevPhase.nextPhase = Some(this) }
+  def dependsOn(prevPhase: Phase): Unit = { prevPhase.nextPhase = Some(this) }
   def hasNext: Boolean = nextPhase.nonEmpty
   def next             = nextPhase.get
 
