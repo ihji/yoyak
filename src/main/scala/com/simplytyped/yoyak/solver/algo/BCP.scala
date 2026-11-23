@@ -24,10 +24,12 @@ class BCP(cnf: CNF) {
   def run(phi: PAssignDom): PAssignDom = {
     var oldPhi: PAssignDom = PAssign.empty
     var newPhi: PAssignDom = phi
-    do {
+    var changed = true
+    while (changed) {
       oldPhi = newPhi
       newPhi = cnf.clauses.foldLeft(newPhi) { unit(_, _) }
-    } while (!(newPhi <<= oldPhi).get)
+      changed = !(newPhi <<= oldPhi).get
+    }
     newPhi
   }
 }

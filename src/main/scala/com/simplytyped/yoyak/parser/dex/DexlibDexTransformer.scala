@@ -72,7 +72,7 @@ class DexlibDexTransformer {
           Opcode.MOVE_RESULT_OBJECT =>
         val move = instr.asInstanceOf[DexBackedInstruction11x]
         val dest = getRegVar(move.getRegisterA)
-        Assign(dest, methodReturnVar)
+        Assign(dest, methodReturnVar())
       case Opcode.MOVE_EXCEPTION =>
         val move = instr.asInstanceOf[DexBackedInstruction11x]
         val dest = getRegVar(move.getRegisterA)
@@ -191,10 +191,10 @@ class DexlibDexTransformer {
           getRegVar(newArray.getRegisterG)
         ).take(size)
         val stmts = Assign(
-          methodReturnVar,
+          methodReturnVar(),
           NewArrayExp(ty, IntegerConstant(size))
         ) :: args.zipWithIndex.map { case (v, idx) =>
-          Assign(ArrayRef(methodReturnVar, IntegerConstant(idx)), v)
+          Assign(ArrayRef(methodReturnVar(), IntegerConstant(idx)), v)
         }
         Block(new StatementContainer().setStmts(stmts))
       case Opcode.FILLED_NEW_ARRAY_RANGE =>
@@ -208,10 +208,10 @@ class DexlibDexTransformer {
           getRegVar
         }.toList
         val stmts = Assign(
-          methodReturnVar,
+          methodReturnVar(),
           NewArrayExp(ty, IntegerConstant(registerCount))
         ) :: args.zipWithIndex.map { case (v, idx) =>
-          Assign(ArrayRef(methodReturnVar, IntegerConstant(idx)), v)
+          Assign(ArrayRef(methodReturnVar(), IntegerConstant(idx)), v)
         }
         Block(new StatementContainer().setStmts(stmts))
       case Opcode.FILL_ARRAY_DATA =>
@@ -787,7 +787,7 @@ class DexlibDexTransformer {
         val retType = typeTransform(method.getReturnType)
         val retVar =
           if (retType == Type.VoidType) None
-          else Some(methodReturnVar.setType(retType))
+          else Some(methodReturnVar().setType(retType))
 
         Invoke(
           retVar,
@@ -824,7 +824,7 @@ class DexlibDexTransformer {
         val retType = typeTransform(method.getReturnType)
         val retVar =
           if (retType == Type.VoidType) None
-          else Some(methodReturnVar.setType(retType))
+          else Some(methodReturnVar().setType(retType))
 
         Invoke(retVar, StaticInvoke(methodSig, packedArgs))
       case Opcode.INVOKE_VIRTUAL_RANGE | Opcode.INVOKE_SUPER_RANGE |
@@ -852,7 +852,7 @@ class DexlibDexTransformer {
         val retType = typeTransform(method.getReturnType)
         val retVar =
           if (retType == Type.VoidType) None
-          else Some(methodReturnVar.setType(retType))
+          else Some(methodReturnVar().setType(retType))
 
         Invoke(
           retVar,
@@ -886,7 +886,7 @@ class DexlibDexTransformer {
         val retType = typeTransform(method.getReturnType)
         val retVar =
           if (retType == Type.VoidType) None
-          else Some(methodReturnVar.setType(retType))
+          else Some(methodReturnVar().setType(retType))
 
         Invoke(retVar, StaticInvoke(methodSig, packedArgs))
       case Opcode.NEG_INT =>
@@ -1695,7 +1695,7 @@ class DexlibDexTransformer {
 
         val instrs    = impl.getInstructions.asScala.toList
         val offsetMap = buildOffsetMap(instrs)
-        implicit val context =
+        implicit val context: Context =
           Context(offsetMap, offsetMap.map { _.swap }, instrs)
         val rawStmts = instrs.zipWithIndex.map { instructionTransform }
 

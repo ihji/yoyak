@@ -16,7 +16,7 @@ object Main {
     phases.head
   }
 
-  def main(args: Array[String]) {
+  def main(args: Array[String]): Unit = {
     new OptionParser().parse(args)
     val driver = new PhaseDriver(androidStringAnalysis)
     val global = Global.empty
