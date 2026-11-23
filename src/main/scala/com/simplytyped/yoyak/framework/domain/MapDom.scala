@@ -1,26 +1,25 @@
 package com.simplytyped.yoyak.framework.domain
 
-import com.simplytyped.yoyak.framework.domain.Galois.GaloisIdentity
 import com.simplytyped.yoyak.framework.semantics.Widening
 
-class MapDom[K, V <: Galois: LatticeOps] {
+class MapDom[K, V: LatticeOps] {
   val valueOps = implicitly[LatticeOps[V]]
 
-  private var rawMap = Map.empty[K, V#Abst]
+  private var rawMap = Map.empty[K, V]
 
   override def toString = rawMap.mkString("\n")
 
-  private def add(kv: (K, V#Abst)): MapDom[K, V] = {
+  private def add(kv: (K, V)): MapDom[K, V] = {
     if (!valueOps.isBottom(kv._2)) {
       val newDom = new MapDom[K, V]
       newDom.rawMap = rawMap + (kv._1 -> kv._2)
       newDom
     } else this
   }
-  def update(kv: (K, V#Abst)): MapDom[K, V] = add(kv)
-  def weakUpdate(kv: (K, V#Abst)): MapDom[K, V] =
+  def update(kv: (K, V)): MapDom[K, V] = add(kv)
+  def weakUpdate(kv: (K, V)): MapDom[K, V] =
     add(kv._1 -> valueOps.\/(get(kv._1), kv._2))
-  def get(k: K): V#Abst = rawMap.getOrElse(k, valueOps.bottom)
+  def get(k: K): V = rawMap.getOrElse(k, valueOps.bottom)
   def remove(k: K): MapDom[K, V] = {
     if (rawMap.get(k).nonEmpty) {
       val newDom = new MapDom[K, V]
@@ -29,7 +28,7 @@ class MapDom[K, V <: Galois: LatticeOps] {
     } else this
   }
 
-  def foldLeft[T](init: T)(f: (T, (K, V#Abst)) => T): T =
+  def foldLeft[T](init: T)(f: (T, (K, V)) => T): T =
     rawMap.foldLeft(init)(f)
   def size: Int = rawMap.size
   def iterator  = rawMap.iterator
@@ -38,10 +37,10 @@ class MapDom[K, V <: Galois: LatticeOps] {
 }
 
 object MapDom {
-  def empty[K, V <: Galois: LatticeOps] = new MapDom[K, V]
+  def empty[K, V: LatticeOps] = new MapDom[K, V]
 
-  def widening[K, V <: Galois: LatticeOps: Widening] =
-    new Widening[GaloisIdentity[MapDom[K, V]]] {
+  def widening[K, V: LatticeOps: Widening] =
+    new Widening[MapDom[K, V]] {
       val widening = implicitly[Widening[V]]
       override def <>(x: MapDom[K, V], y: MapDom[K, V]): MapDom[K, V] = {
         val newDom = new MapDom[K, V]
@@ -54,8 +53,8 @@ object MapDom {
       }
     }
 
-  def ops[K, V <: Galois: LatticeOps] =
-    new LatticeOps[GaloisIdentity[MapDom[K, V]]] {
+  def ops[K, V: LatticeOps] =
+    new LatticeOps[MapDom[K, V]] {
       val valueOps = implicitly[LatticeOps[V]]
 
       override def partialCompare(

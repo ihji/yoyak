@@ -1,14 +1,12 @@
 package com.simplytyped.yoyak.framework.semantics
 
-import com.simplytyped.yoyak.framework.domain.Galois
-
-trait Widening[D <: Galois] {
-  def <>(x: D#Abst, y: D#Abst): D#Abst
+trait Widening[D] {
+  def <>(x: D, y: D): D
 }
 
 object Widening {
-  def NoWidening[A <: Galois]: Widening[A] =
+  def NoWidening[A]: Widening[A] =
     new Widening[A] {
-      override def <>(x: A#Abst, y: A#Abst): A#Abst = y
+      override def <>(x: A, y: A): A = y
     }
 }

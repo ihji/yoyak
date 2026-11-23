@@ -1,10 +1,10 @@
 package com.simplytyped.yoyak.framework.algo
 
-import com.simplytyped.yoyak.framework.domain.{Galois, LatticeOps}
+import com.simplytyped.yoyak.framework.domain.LatticeOps
 import com.simplytyped.yoyak.framework.semantics.Widening
 import com.simplytyped.yoyak.il.cfg.BasicBlock
 
-trait FlowInsensitiveFixedPointComputation[D <: Galois]
+trait FlowInsensitiveFixedPointComputation[D]
     extends FlowInsensitiveIteration[D]
     with DoWidening[D] {
   implicit val ops: LatticeOps[D]
@@ -12,9 +12,9 @@ trait FlowInsensitiveFixedPointComputation[D <: Galois]
 
   val worklist = Worklist.empty[BasicBlock]
 
-  def computeFixedPoint(input: D#Abst, startNodes: List[BasicBlock])(implicit
+  def computeFixedPoint(input: D, startNodes: List[BasicBlock])(implicit
       widening: Option[Widening[D]] = None
-  ): D#Abst = {
+  ): D = {
     assert(startNodes.size > 0)
     worklist.add(startNodes: _*)
     var next = input

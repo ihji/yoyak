@@ -1,20 +1,16 @@
 package com.simplytyped.yoyak.framework.domain.arith
 
 import com.simplytyped.yoyak.framework.domain.arith.Interval._
-import com.simplytyped.yoyak.framework.domain.{ArithmeticOps, Galois}
+import com.simplytyped.yoyak.framework.domain.ArithmeticOps
 import com.simplytyped.yoyak.framework.semantics.Widening
 import com.simplytyped.yoyak.il.CommonIL.Value.{IntegerConstant, Constant}
 
 import scala.util.Sorting
 
-class IntervalInt extends Galois {
-  type Conc = Int
-  type Abst = Interval
-}
-
 object IntervalInt {
-  implicit val arithOps: ArithmeticOps[IntervalInt] =
-    new ArithmeticOps[IntervalInt] {
+  implicit val arithOps: ArithmeticOps[Interval] { type Concrete = Int } =
+    new ArithmeticOps[Interval] {
+      type Concrete = Int
       override def +(lhs: Interval, rhs: Interval): Interval = {
         (lhs, rhs) match {
           case (IntervBottom, _) => IntervBottom
@@ -210,7 +206,7 @@ object IntervalInt {
             }
         }
     }
-  implicit val widening: Widening[IntervalInt] = new Widening[IntervalInt] {
+  implicit val widening: Widening[Interval] = new Widening[Interval] {
     override def <>(x: Interval, y: Interval): Interval = {
       (x, y) match {
         case (IntervTop, _)    => IntervTop

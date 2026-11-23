@@ -1,7 +1,6 @@
 package com.simplytyped.yoyak.framework.semantics
 
-import com.simplytyped.yoyak.framework.domain.{Galois, ArithmeticOps}
-import com.simplytyped.yoyak.framework.domain.Galois.GaloisIdentity
+import com.simplytyped.yoyak.framework.domain.ArithmeticOps
 import com.simplytyped.yoyak.framework.domain.mem.MemDomLike
 import com.simplytyped.yoyak.framework.domain.mem.MemElems.{
   AbsRef,
@@ -13,8 +12,8 @@ import com.simplytyped.yoyak.framework.semantics.AbstractTransferable.Context
 import com.simplytyped.yoyak.il.CommonIL.Statement._
 import com.simplytyped.yoyak.il.CommonIL.Value
 
-trait StdSemantics[A <: Galois, D, Mem <: MemDomLike[A, D, Mem]]
-    extends AbstractTransferable[GaloisIdentity[Mem]] {
+trait StdSemantics[A, D, Mem <: MemDomLike[A, D, Mem]]
+    extends AbstractTransferable[Mem] {
   val arithOps: ArithmeticOps[A]
 
   override protected def transferIdentity(stmt: Identity, input: Mem)(implicit

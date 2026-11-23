@@ -5,8 +5,7 @@ import com.simplytyped.yoyak.framework.algo.{
   FlowSensitiveFixedPointComputation,
   FlowInsensitiveFixedPointComputation
 }
-import com.simplytyped.yoyak.framework.domain.Galois.GaloisIdentity
-import com.simplytyped.yoyak.framework.domain.{Galois, MapDom, LatticeOps}
+import com.simplytyped.yoyak.framework.domain.{MapDom, LatticeOps}
 import com.simplytyped.yoyak.framework.semantics.{
   Widening,
   AbstractTransferable
@@ -16,20 +15,20 @@ import com.simplytyped.yoyak.il.cfg.{BasicBlock, CFG}
 object BackwardAnalysis {
 
   // FIXME: we should also take a reverse order while analyzing statements in a single block
-  class FlowInsensitiveBackwardAnalysis[D <: Galois](val cfg: CFG)(implicit
+  class FlowInsensitiveBackwardAnalysis[D](val cfg: CFG)(implicit
       val ops: LatticeOps[D],
       val absTransfer: AbstractTransferable[D],
       val widening: Option[Widening[D]] = None
   ) extends FlowInsensitiveFixedPointComputation[D]
       with WideningAtLoopHeads[D] {
     def getNextBlocks(bb: BasicBlock) = cfg.getPrevs(bb).toList
-    def compute(input: D#Abst): D#Abst = {
+    def compute(input: D): D = {
       val startNodes = cfg.getExit.toList.flatMap { getNextBlocks }
       computeFixedPoint(input, startNodes)
     }
   }
 
-  class FlowSensitiveBackwardAnalysis[D <: Galois](val cfg: CFG)(implicit
+  class FlowSensitiveBackwardAnalysis[D](val cfg: CFG)(implicit
       val ops: LatticeOps[D],
       val absTransfer: AbstractTransferable[D],
       val widening: Option[Widening[D]] = None

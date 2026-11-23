@@ -1,11 +1,11 @@
 package com.simplytyped.yoyak.framework.domain.mem
 
+import com.simplytyped.yoyak.framework.domain.Galois.SetAbstraction.boxedOps
 import com.simplytyped.yoyak.framework.domain.Galois.SetAbstraction
 import com.simplytyped.yoyak.framework.domain.MapDomTest.SetInt
 import com.simplytyped.yoyak.framework.domain.mem.MemDomTest.SetString
 import com.simplytyped.yoyak.framework.domain.{
   ArithmeticOps,
-  Galois,
   LatticeWithTopOps
 }
 import com.simplytyped.yoyak.framework.domain.mem.MemElems._
@@ -80,7 +80,8 @@ class MemDomTest extends AnyFunSuite with Matchers {
 object MemDomTest {
   type SetString = SetAbstraction[String]
 
-  implicit val arithOps: ArithmeticOps[SetInt] = new ArithmeticOps[SetInt] {
+  implicit val arithOps: ArithmeticOps[SetInt] { type Concrete = Int } = new ArithmeticOps[SetInt] {
+    type Concrete = Int
     override def +(lhs: Set[Int], rhs: Set[Int]): Set[Int] = ???
 
     override def /(lhs: Set[Int], rhs: Set[Int]): Set[Int] = ???

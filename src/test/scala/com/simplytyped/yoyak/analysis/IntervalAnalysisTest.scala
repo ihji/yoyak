@@ -1,7 +1,7 @@
 package com.simplytyped.yoyak.analysis
 
 import com.simplytyped.yoyak.framework.domain.arith.Interval._
-import com.simplytyped.yoyak.framework.domain.arith.{IntervalInt, Interv}
+import com.simplytyped.yoyak.framework.domain.arith.{Interval, Interv}
 import com.simplytyped.yoyak.framework.domain.mem.MemElems.AbsArith
 import com.simplytyped.yoyak.il.CommonIL.Statement.Return
 import com.simplytyped.yoyak.il.CommonIL.Value.Local
@@ -31,8 +31,8 @@ class IntervalAnalysisTest extends AnyFunSuite with Matchers {
     val returns = cfg.nodes.filter(_.data.getStmts.exists(_.isInstanceOf[Return]))
     returns should have size 1
     val atReturn = new IntervalAnalysis(cfg).run().get(returns.head)
-    atReturn.get(Local("x")) shouldBe AbsArith[IntervalInt](Interv.in(IInt(1), IInt(3)))
-    atReturn.get(Local("y")) shouldBe AbsArith[IntervalInt](Interv.in(IInt(3), IInt(5)))
+    atReturn.get(Local("x")) shouldBe AbsArith[Interval](Interv.in(IInt(1), IInt(3)))
+    atReturn.get(Local("y")) shouldBe AbsArith[Interval](Interv.in(IInt(3), IInt(5)))
   }
 
   test("loop-head widening expands the growing bound and preserves a stable local") {
@@ -45,8 +45,8 @@ class IntervalAnalysisTest extends AnyFunSuite with Matchers {
     val heads = CFG.traverse.findLoopheads(cfg)
     heads should have size 1
     val atHead = new IntervalAnalysis(cfg).run().get(heads.head)
-    atHead.get(Local("x")) shouldBe AbsArith[IntervalInt](Interv.in(IInt(1), IInf))
-    atHead.get(Local("stable")) shouldBe AbsArith[IntervalInt](Interv.of(7))
+    atHead.get(Local("x")) shouldBe AbsArith[Interval](Interv.in(IInt(1), IInf))
+    atHead.get(Local("stable")) shouldBe AbsArith[Interval](Interv.of(7))
   }
 
   test("simple test") {
