@@ -1,6 +1,5 @@
 package com.simplytyped.yoyak.il.opt
 
-import com.simplytyped.yoyak.framework.domain.Galois.GaloisIdentity
 import com.simplytyped.yoyak.framework.domain.MapDom
 import com.simplytyped.yoyak.il.CommonIL.Statement._
 import com.simplytyped.yoyak.il.CommonIL.Type
@@ -17,7 +16,7 @@ class VarSplitting {
 
   var renameMap = Map.empty[CoreStmt, Local]
   private def generateRenameMap(
-      defMap: MapDom[BasicBlock, GaloisIdentity[MapDom[Local, SetCoreStmt]]]
+      defMap: MapDom[BasicBlock, MapDom[Local, SetCoreStmt]]
   ): Unit = {
     val defGroup = defMap
       .foldLeft(Map.empty[CoreStmt, MSet[CoreStmt]]) {

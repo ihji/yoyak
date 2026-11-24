@@ -1,5 +1,6 @@
 package com.simplytyped.yoyak.framework.domain
 
+import com.simplytyped.yoyak.framework.domain.Galois.SetAbstraction.boxedOps
 import com.simplytyped.yoyak.framework.domain.Galois.SetAbstraction
 import com.simplytyped.yoyak.framework.domain.MapDomTest.SetInt
 import org.scalatest.funsuite.AnyFunSuite

@@ -1,12 +1,10 @@
 package com.simplytyped.yoyak.analysis
 
+import com.simplytyped.yoyak.framework.domain.Galois.SetAbstraction.boxedOps
 import com.simplytyped.yoyak.analysis.StringAnalysis.SetInt
 import com.simplytyped.yoyak.android.AndroidAPIs
 import com.simplytyped.yoyak.framework.ForwardAnalysis.FlowSensitiveForwardAnalysis
-import com.simplytyped.yoyak.framework.domain.Galois.{
-  SetAbstraction,
-  GaloisIdentity
-}
+import com.simplytyped.yoyak.framework.domain.Galois.SetAbstraction
 import com.simplytyped.yoyak.framework.domain.mem.MemElems.{AbsTop, AbsBox}
 import com.simplytyped.yoyak.framework.domain._
 import com.simplytyped.yoyak.framework.domain.mem.MemDom
@@ -21,7 +19,7 @@ class StringAnalysis(cfg: CFG) {
   def run(): List[String] = {
     import StringAnalysis.{absTransfer, memDomOps}
     val analysis = new FlowSensitiveForwardAnalysis[
-      GaloisIdentity[MemDom[SetInt, SetAbstraction[String]]]
+      MemDom[SetInt, SetAbstraction[String]]
     ](cfg)
     val output = analysis.compute
     check(output)
@@ -46,9 +44,7 @@ class StringAnalysis(cfg: CFG) {
     }
   }
   def check(
-      output: MapDom[BasicBlock, GaloisIdentity[
-        MemDom[SetInt, SetAbstraction[String]]
-      ]]
+      output: MapDom[BasicBlock, MemDom[SetInt, SetAbstraction[String]]]
   ): List[String] = {
     cfg.nodes.foldLeft(List.empty[String]) { (list, node) =>
       val prevs = cfg.getPrevs(node)
@@ -68,10 +64,7 @@ class StringAnalysis(cfg: CFG) {
 }
 
 object StringAnalysis {
-  class SetInt extends Galois {
-    type Conc = Int
-    type Abst = Set[Int]
-  }
+  type SetInt = Set[Int]
 
   implicit val absTransfer: StdSemantics[SetInt, SetAbstraction[String], MemDom[
     SetInt,
@@ -94,7 +87,8 @@ object StringAnalysis {
     }
   }
 
-  implicit val arithOps: ArithmeticOps[SetInt] = new ArithmeticOps[SetInt] {
+  implicit val arithOps: ArithmeticOps[SetInt] { type Concrete = Int } = new ArithmeticOps[SetInt] {
+    type Concrete = Int
     override def +(lhs: Set[Int], rhs: Set[Int]): Set[Int] = ???
 
     override def /(lhs: Set[Int], rhs: Set[Int]): Set[Int] = ???
@@ -120,6 +114,6 @@ object StringAnalysis {
       else Double.NaN
   }
   implicit val memDomOps
-      : LatticeOps[GaloisIdentity[MemDom[SetInt, SetAbstraction[String]]]] =
+      : LatticeOps[MemDom[SetInt, SetAbstraction[String]]] =
     MemDom.ops[SetInt, SetAbstraction[String]]
 }

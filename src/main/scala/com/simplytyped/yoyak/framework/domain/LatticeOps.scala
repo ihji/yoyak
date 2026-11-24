@@ -2,11 +2,11 @@ package com.simplytyped.yoyak.framework.domain
 
 import cats.PartialOrder
 
-trait LatticeOps[D <: Galois] extends PartialOrder[D#Abst] {
-  def \/(lhs: D#Abst, rhs: D#Abst): D#Abst
-  def bottom: D#Abst
+trait LatticeOps[D] extends PartialOrder[D] {
+  def \/(lhs: D, rhs: D): D
+  def bottom: D
 
-  def isBottom(v: D#Abst): Boolean = {
+  def isBottom(v: D): Boolean = {
     val isBot = partialCompare(v, bottom)
     assert(!isBot.isNaN, "every element should have an order with bottom")
     isBot == 0

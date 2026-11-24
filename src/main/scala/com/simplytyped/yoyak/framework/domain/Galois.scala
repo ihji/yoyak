@@ -1,19 +1,7 @@
 package com.simplytyped.yoyak.framework.domain
 
-trait Galois {
-  type Conc
-  type Abst
-}
-
 object Galois {
-  class GaloisIdentity[A] extends Galois {
-    type Conc = A
-    type Abst = A
-  }
-  class SetAbstraction[A] extends Galois {
-    type Conc = A
-    type Abst = Set[A]
-  }
+  type SetAbstraction[A] = Set[A]
   object SetAbstraction {
     implicit def boxedOps[A]: LatticeWithTopOps[SetAbstraction[A]] =
       new LatticeWithTopOps[SetAbstraction[A]] {

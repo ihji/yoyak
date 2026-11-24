@@ -1,6 +1,5 @@
 package com.simplytyped.yoyak.framework.domain.mem
 
-import com.simplytyped.yoyak.framework.domain.Galois.GaloisIdentity
 import com.simplytyped.yoyak.framework.domain._
 import com.simplytyped.yoyak.framework.domain.mem.MemElems._
 import com.simplytyped.yoyak.framework.semantics.Widening
@@ -9,20 +8,17 @@ import com.simplytyped.yoyak.il.CommonIL.Statement.Stmt
 import com.simplytyped.yoyak.il.CommonIL.Value._
 import StdObjectModel._
 
-trait StdObjectModel[A <: Galois, D <: Galois, This <: StdObjectModel[
+trait StdObjectModel[A, D, This <: StdObjectModel[
   A,
   D,
   This
 ]] extends MemDomLike[A, D, This]
     with ArrayJoinModel[A, D, This] {
-  implicit val arithOps: ArithmeticOps[A]
-  implicit val boxedOps: LatticeWithTopOps[D]
-
-  implicit val absValueOps: LatticeOps[GaloisIdentity[AbsValue[A, D]]] =
+  implicit val absValueOps: LatticeOps[AbsValue[A, D]] =
     absValueOpsWithObject[A, D]
 
   protected[mem] var rawMap =
-    MapDom.empty[AbsAddr, GaloisIdentity[AbsValue[A, D]]]
+    MapDom.empty[AbsAddr, AbsValue[A, D]]
 
   def alloc(from: Stmt): (AbsRef, This) = {
     val newObj    = new AbsObject[A, D]
@@ -35,9 +31,9 @@ trait StdObjectModel[A <: Galois, D <: Galois, This <: StdObjectModel[
     builder(newRawMap)
   }
   private def updateRawMap(
-      map: MapDom[AbsAddr, GaloisIdentity[AbsValue[A, D]]],
+      map: MapDom[AbsAddr, AbsValue[A, D]],
       kv: (Loc, AbsValue[A, D])
-  ): MapDom[AbsAddr, GaloisIdentity[AbsValue[A, D]]] = {
+  ): MapDom[AbsAddr, AbsValue[A, D]] = {
     val (loc, v) = kv
     loc match {
       case Local(id)     => map.update(AbsAddr(id) -> v)
@@ -113,7 +109,7 @@ trait StdObjectModel[A <: Galois, D <: Galois, This <: StdObjectModel[
     addr.id.startsWith(StdObjectModel.dynamicPrefix)
 
   protected def builder(
-      rawMap: MapDom[AbsAddr, GaloisIdentity[AbsValue[A, D]]]
+      rawMap: MapDom[AbsAddr, AbsValue[A, D]]
   ): This
 }
 
@@ -138,17 +134,17 @@ object StdObjectModel {
   }
   def getParamAddr(i: Int): AbsAddr = AbsAddr(s"${dynamicPrefix}p$i")
 
-  class AbsObject[A <: Galois: ArithmeticOps, D <: Galois: LatticeWithTopOps]
+  class AbsObject[A: ArithmeticOps, D: LatticeWithTopOps]
       extends AbsValue[A, D] {
-    implicit val absValueOps: LatticeOps[GaloisIdentity[AbsValue[A, D]]] =
+    implicit val absValueOps: LatticeOps[AbsValue[A, D]] =
       absValueOpsWithObject[A, D]
 
     protected[mem] var rawFieldMap =
-      MapDom.empty[String, GaloisIdentity[AbsValue[A, D]]]
+      MapDom.empty[String, AbsValue[A, D]]
 
     def \/(that: AbsObject[A, D]): AbsObject[A, D] = {
       val newFieldMap = MapDom
-        .ops[String, GaloisIdentity[AbsValue[A, D]]]
+        .ops[String, AbsValue[A, D]]
         .\/(rawFieldMap, that.rawFieldMap)
       val newObject = new AbsObject[A, D]
       newObject.rawFieldMap = newFieldMap
@@ -157,15 +153,15 @@ object StdObjectModel {
 
     def partialCompare(that: AbsObject[A, D]): Double = {
       MapDom
-        .ops[String, GaloisIdentity[AbsValue[A, D]]]
+        .ops[String, AbsValue[A, D]]
         .partialCompare(rawFieldMap, that.rawFieldMap)
     }
 
     def widening(that: AbsObject[A, D])(implicit
-        wideningAbsValue: Widening[GaloisIdentity[AbsValue[A, D]]]
+        wideningAbsValue: Widening[AbsValue[A, D]]
     ): AbsObject[A, D] = {
       val newFieldMap = MapDom
-        .widening[String, GaloisIdentity[AbsValue[A, D]]]
+        .widening[String, AbsValue[A, D]]
         .<>(rawFieldMap, that.rawFieldMap)
       val newObject = new AbsObject[A, D]
       newObject.rawFieldMap = newFieldMap
@@ -188,10 +184,10 @@ object StdObjectModel {
   }
 
   def absValueOpsWithObject[
-      A <: Galois: ArithmeticOps,
-      D <: Galois: LatticeWithTopOps
+      A: ArithmeticOps,
+      D: LatticeWithTopOps
   ] =
-    new LatticeOps[GaloisIdentity[AbsValue[A, D]]] {
+    new LatticeOps[AbsValue[A, D]] {
       val absValueOps = AbsValue.ops[A, D]
       override def \/(
           lhs: AbsValue[A, D],
@@ -221,9 +217,9 @@ object StdObjectModel {
       override def bottom: AbsValue[A, D] = absValueOps.bottom
     }
 
-  def wideningWithObject[A <: Galois: Widening, D <: Galois: Widening] =
-    new Widening[GaloisIdentity[AbsValue[A, D]]] {
-      implicit val wideningAbsValue: Widening[GaloisIdentity[AbsValue[A, D]]] =
+  def wideningWithObject[A: Widening, D: Widening] =
+    new Widening[AbsValue[A, D]] {
+      implicit val wideningAbsValue: Widening[AbsValue[A, D]] =
         AbsValue.widening[A, D]
       override def <>(x: AbsValue[A, D], y: AbsValue[A, D]): AbsValue[A, D] = {
         (x, y) match {

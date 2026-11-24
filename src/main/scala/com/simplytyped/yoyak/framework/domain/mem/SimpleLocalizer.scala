@@ -2,7 +2,6 @@ package com.simplytyped.yoyak.framework.domain.mem
 
 import com.simplytyped.yoyak.framework.domain.mem.StdObjectModel.AbsObject
 import com.simplytyped.yoyak.framework.domain.{
-  Galois,
   LatticeWithTopOps,
   ArithmeticOps
 }
@@ -14,8 +13,8 @@ import com.simplytyped.yoyak.framework.domain.mem.MemElems.{
 import com.simplytyped.yoyak.il.CommonIL.Value.Local
 
 class SimpleLocalizer[
-    A <: Galois: ArithmeticOps,
-    D <: Galois: LatticeWithTopOps
+    A: ArithmeticOps,
+    D: LatticeWithTopOps
 ] extends Localizable[MemDom[A, D]] {
   val returningPlaceholder = Local("$__ret")
   def deleteLocals(input: MemDom[A, D]): MemDom[A, D] = {

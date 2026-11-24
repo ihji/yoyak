@@ -1,6 +1,5 @@
 package com.simplytyped.yoyak.framework.domain.mem
 
-import com.simplytyped.yoyak.framework.domain.Galois.GaloisIdentity
 import com.simplytyped.yoyak.framework.domain._
 import com.simplytyped.yoyak.framework.semantics.Widening
 import com.simplytyped.yoyak.il.cfg.BasicBlock
@@ -12,15 +11,15 @@ object MemElems {
 
   abstract class AbsValue[+A, +D]
 
-  case class AbsRef(id: Set[String])             extends AbsValue
-  case class AbsArith[A <: Galois](data: A#Abst) extends AbsValue[A, Nothing]
-  case class AbsBox[D <: Galois](data: D#Abst)   extends AbsValue[Nothing, D]
-  case object AbsBottom                          extends AbsValue
-  case object AbsTop                             extends AbsValue
+  case class AbsRef(id: Set[String]) extends AbsValue[Nothing, Nothing]
+  case class AbsArith[A](data: A) extends AbsValue[A, Nothing]
+  case class AbsBox[D](data: D)   extends AbsValue[Nothing, D]
+  case object AbsBottom extends AbsValue[Nothing, Nothing]
+  case object AbsTop extends AbsValue[Nothing, Nothing]
 
   object AbsValue {
-    def widening[A <: Galois: Widening, D <: Galois: Widening] =
-      new Widening[GaloisIdentity[AbsValue[A, D]]] {
+    def widening[A: Widening, D: Widening] =
+      new Widening[AbsValue[A, D]] {
         val wideningA = implicitly[Widening[A]]
         val wideningD = implicitly[Widening[D]]
         override def <>(
@@ -34,8 +33,8 @@ object MemElems {
           }
         }
       }
-    def ops[A <: Galois: ArithmeticOps, D <: Galois: LatticeWithTopOps] =
-      new LatticeOps[GaloisIdentity[AbsValue[A, D]]] {
+    def ops[A: ArithmeticOps, D: LatticeWithTopOps] =
+      new LatticeOps[AbsValue[A, D]] {
         val boxOps   = implicitly[LatticeWithTopOps[D]]
         val arithOps = implicitly[ArithmeticOps[A]]
         override def partialCompare(

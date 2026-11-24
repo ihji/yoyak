@@ -1,6 +1,5 @@
 package com.simplytyped.yoyak.framework.algo
 
-import com.simplytyped.yoyak.framework.domain.Galois.GaloisIdentity
 import com.simplytyped.yoyak.framework.domain.MapDom
 import com.simplytyped.yoyak.framework.domain.mem.{
   MemDomLike,
@@ -14,8 +13,8 @@ import com.simplytyped.yoyak.il.cfg.BasicEdge.{IntraEdge, EdgeType, InterEdge}
 import com.simplytyped.yoyak.il.cfg.{CFG, BasicEdge, BasicBlock}
 
 trait InterproceduralIteration[A, D, M <: MemDomLike[A, D, M]]
-    extends FlowSensitiveIteration[GaloisIdentity[M]]
-    with CfgNavigator[GaloisIdentity[M]] {
+    extends FlowSensitiveIteration[M]
+    with CfgNavigator[M] {
   implicit val localize: Localizable[M]
   implicit val resolve: Resolvable[M]
 
@@ -33,7 +32,7 @@ trait InterproceduralIteration[A, D, M <: MemDomLike[A, D, M]]
       .getOrElse(List.empty[BasicBlock])
   }
   override def memoryFetcher(
-      map: MapDom[BasicBlock, GaloisIdentity[M]],
+      map: MapDom[BasicBlock, M],
       b: BasicBlock
   ): Seq[M] = {
     val methodSigOpt = BasicBlock.getMethodSig(b)
@@ -59,10 +58,10 @@ trait InterproceduralIteration[A, D, M <: MemDomLike[A, D, M]]
   }
 
   override def work(
-      map: MapDom[BasicBlock, GaloisIdentity[M]],
+      map: MapDom[BasicBlock, M],
       input: M,
       block: BasicBlock
-  ): (MapDom[BasicBlock, GaloisIdentity[M]], M) = {
+  ): (MapDom[BasicBlock, M], M) = {
     val stmts = block.data.getStmts
     val (newMap, output) = stmts.foldLeft(map, input) {
       case ((m, in), ivk @ Invoke(_, _)) =>
@@ -111,8 +110,8 @@ trait InterproceduralIteration[A, D, M <: MemDomLike[A, D, M]]
       block: BasicBlock,
       invokeStmt: Invoke,
       input: M,
-      map: MapDom[BasicBlock, GaloisIdentity[M]]
-  ): MapDom[BasicBlock, GaloisIdentity[M]] = {
+      map: MapDom[BasicBlock, M]
+  ): MapDom[BasicBlock, M] = {
     val targetMethodSigs = resolve.resolve(input, invokeStmt)
     val targetMethods    = targetMethodSigs.flatMap { pgm.methods.get }
     targetMethods.foldLeft(map) { case (m, targetMethod) =>
@@ -149,8 +148,8 @@ trait InterproceduralIteration[A, D, M <: MemDomLike[A, D, M]]
       block: BasicBlock,
       returnStmt: Return,
       input: M,
-      map: MapDom[BasicBlock, GaloisIdentity[M]]
-  ): MapDom[BasicBlock, GaloisIdentity[M]] = {
+      map: MapDom[BasicBlock, M]
+  ): MapDom[BasicBlock, M] = {
     val returnValOpt    = returnStmt.v.map { input.get }
     val localizedMemory = localize.deleteLocals(input)
     val returningMemory = returnValOpt.foldLeft(localizedMemory) {

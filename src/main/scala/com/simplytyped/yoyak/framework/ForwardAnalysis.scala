@@ -5,8 +5,7 @@ import com.simplytyped.yoyak.framework.algo.{
   FlowSensitiveFixedPointComputation,
   FlowInsensitiveFixedPointComputation
 }
-import com.simplytyped.yoyak.framework.domain.Galois.GaloisIdentity
-import com.simplytyped.yoyak.framework.domain.{Galois, MapDom, LatticeOps}
+import com.simplytyped.yoyak.framework.domain.{MapDom, LatticeOps}
 import com.simplytyped.yoyak.framework.semantics.{
   Widening,
   AbstractTransferable
@@ -15,20 +14,20 @@ import com.simplytyped.yoyak.il.cfg.{BasicBlock, CFG}
 
 object ForwardAnalysis {
 
-  class FlowInsensitiveForwardAnalysis[D <: Galois](val cfg: CFG)(implicit
+  class FlowInsensitiveForwardAnalysis[D](val cfg: CFG)(implicit
       val ops: LatticeOps[D],
       val absTransfer: AbstractTransferable[D],
       val widening: Option[Widening[D]] = None
   ) extends FlowInsensitiveFixedPointComputation[D]
       with WideningAtLoopHeads[D] {
     def getNextBlocks(bb: BasicBlock) = cfg.getNexts(bb).toList
-    def compute(input: D#Abst): D#Abst = {
+    def compute(input: D): D = {
       val startNodes = cfg.getEntry.toList.flatMap { getNextBlocks }
       computeFixedPoint(input, startNodes)
     }
   }
 
-  class FlowSensitiveForwardAnalysis[D <: Galois](val cfg: CFG)(implicit
+  class FlowSensitiveForwardAnalysis[D](val cfg: CFG)(implicit
       val ops: LatticeOps[D],
       val absTransfer: AbstractTransferable[D],
       val widening: Option[Widening[D]] = None

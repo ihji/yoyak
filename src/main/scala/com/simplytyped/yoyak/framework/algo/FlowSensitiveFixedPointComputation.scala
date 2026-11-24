@@ -1,10 +1,10 @@
 package com.simplytyped.yoyak.framework.algo
 
-import com.simplytyped.yoyak.framework.domain.{Galois, MapDom, LatticeOps}
+import com.simplytyped.yoyak.framework.domain.{MapDom, LatticeOps}
 import com.simplytyped.yoyak.framework.semantics.Widening
 import com.simplytyped.yoyak.il.cfg.BasicBlock
 
-trait FlowSensitiveFixedPointComputation[D <: Galois]
+trait FlowSensitiveFixedPointComputation[D]
     extends FlowSensitiveIteration[D]
     with CfgNavigator[D]
     with DoWidening[D] {
@@ -14,8 +14,8 @@ trait FlowSensitiveFixedPointComputation[D <: Galois]
 
   private def getInput(
       map: MapDom[BasicBlock, D],
-      inputs: Seq[D#Abst]
-  ): D#Abst = {
+      inputs: Seq[D]
+  ): D = {
     val input = inputs.foldLeft(ops.bottom) { (d, i) =>
       ops.\/(d, i)
     }
